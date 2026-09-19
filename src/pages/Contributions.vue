@@ -163,9 +163,13 @@
                         {{ contribution.contributedTo }}
                       </div>
 
-                      <small class="text-muted">
-                        {{ contribution.description }}
+                      <small class="collection-type">
+                        {{ contribution.collectionType }}
                       </small>
+
+                      <div class="text-muted contribution-description">
+                        {{ contribution.description }}
+                      </div>
 
                     </div>
 
@@ -276,12 +280,16 @@ const notyf =
 
 
 // Contributions
-const contributions = ref([]);
+const contributions =
+  ref([]);
 
 
 // UI state
-const isLoading = ref(false);
-const errorMessage = ref("");
+const isLoading =
+  ref(false);
+
+const errorMessage =
+  ref("");
 
 
 // =========================
@@ -291,7 +299,9 @@ const errorMessage = ref("");
 const checkAuthentication = () => {
 
   const token =
-    localStorage.getItem("token");
+    localStorage.getItem(
+      "token"
+    );
 
 
   if (!token) {
@@ -300,7 +310,9 @@ const checkAuthentication = () => {
       "Login as admin"
     );
 
-    router.push("/login");
+    router.push(
+      "/login"
+    );
 
     return false;
 
@@ -318,9 +330,11 @@ const checkAuthentication = () => {
 
 const getContributions = async () => {
 
-  isLoading.value = true;
+  isLoading.value =
+    true;
 
-  errorMessage.value = "";
+  errorMessage.value =
+    "";
 
 
   try {
@@ -331,6 +345,7 @@ const getContributions = async () => {
       );
 
 
+    console.log(response)
     contributions.value =
       response.data;
 
@@ -374,7 +389,8 @@ const getContributions = async () => {
 
   } finally {
 
-    isLoading.value = false;
+    isLoading.value =
+      false;
 
   }
 
@@ -477,49 +493,32 @@ const archiveContribution = async (
 // Group Contributions
 // =========================
 
-const groupedContributions = computed(() => {
+const groupedContributions =
+  computed(() => {
 
-  const groups = {};
+    const groups = {};
 
-
-  contributions.value.forEach(
-    item => {
+    contributions.value.forEach(item => {
 
       if (
         !item.user ||
         !item.createdAt
       ) {
-
         return;
-
       }
 
-
       const date =
-        new Date(
-          item.createdAt
-        );
+        new Date(item.createdAt);
 
-
-      // Use local calendar date
       const dateKey =
         `${date.getFullYear()}-${String(
           date.getMonth() + 1
-        ).padStart(
-          2,
-          "0"
-        )}-${String(
+        ).padStart(2, "0")}-${String(
           date.getDate()
-        ).padStart(
-          2,
-          "0"
-        )}`;
+        ).padStart(2, "0")}`;
 
-
-      // Same contributor + same date
       const key =
         `${item.user._id}-${dateKey}`;
-
 
       if (!groups[key]) {
 
@@ -545,8 +544,6 @@ const groupedContributions = computed(() => {
 
       }
 
-
-      // Add individual contribution
       groups[key].contributions.push({
 
         _id:
@@ -555,42 +552,30 @@ const groupedContributions = computed(() => {
         contributedTo:
           item.contributedTo,
 
+        collectionType:
+          item.collectionType,
+
         description:
           item.description,
 
         amount:
-          Number(
-            item.amount
-          ) || 0
+          Number(item.amount) || 0
 
       });
 
-
-      // Calculate total
       groups[key].totalAmount +=
-        Number(
-          item.amount
-        ) || 0;
+        Number(item.amount) || 0;
 
-    }
-  );
+    });
 
+    return Object.values(groups)
+      .sort(
+        (a, b) =>
+          new Date(b.date) -
+          new Date(a.date)
+      );
 
-  return Object.values(
-    groups
-  )
-    .sort(
-      (a, b) =>
-        new Date(
-          b.date
-        ) -
-        new Date(
-          a.date
-        )
-    );
-
-});
-
+  });
 
 // =========================
 // Format Date
@@ -815,6 +800,45 @@ onMounted(() => {
 
   border-top:
     1px solid #edf1f4;
+
+}
+
+
+/* =========================
+   Collection Type
+========================= */
+
+.collection-type {
+
+  display:
+    block;
+
+  margin-top:
+    2px;
+
+  color:
+    #1e5a8a;
+
+  font-size:
+    13px;
+
+  font-weight:
+    600;
+
+}
+
+
+/* =========================
+   Description
+========================= */
+
+.contribution-description {
+
+  margin-top:
+    2px;
+
+  font-size:
+    13px;
 
 }
 

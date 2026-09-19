@@ -224,20 +224,25 @@
     </div>
 
   </div>
-
 </template>
 
 
 <script setup>
 
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+
 import api from "../api";
 
 import { Notyf } from "notyf";
 import "notyf/notyf.min.css";
 
 
-const notyf = new Notyf();
+const router =
+  useRouter();
+
+const notyf =
+  new Notyf();
 
 
 // Contributions
@@ -247,6 +252,32 @@ const contributions = ref([]);
 // UI state
 const isLoading = ref(false);
 const errorMessage = ref("");
+
+
+// =========================
+// Check Authentication
+// =========================
+
+const checkAuthentication = () => {
+
+  const token =
+    localStorage.getItem("token");
+
+
+  if (!token) {
+
+    notyf.error("Login as admin")
+
+    router.push("/login");
+
+    return false;
+
+  }
+
+
+  return true;
+
+};
 
 
 // =========================
@@ -272,6 +303,22 @@ const getContributions = async () => {
   } catch (error) {
 
     console.error(error);
+
+
+    // Token expired / unauthorized
+    if (
+      error.response?.status === 401 ||
+      error.response?.status === 403
+    ) {
+
+      localStorage.removeItem("token");
+      notyf.error("Login as admin")
+      
+      router.push("/login");
+
+      return;
+
+    }
 
 
     errorMessage.value =
@@ -424,12 +471,18 @@ const formatAmount = (amount) => {
 
 onMounted(() => {
 
+  // Stop immediately if not logged in
+  if (!checkAuthentication()) {
+    return;
+  }
+
+
+  // User is logged in
   getContributions();
 
 });
 
 </script>
-
 
 <style scoped>
 

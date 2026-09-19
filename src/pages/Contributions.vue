@@ -8,7 +8,6 @@
       <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
-
           <h2 class="fw-bold mb-1">
             Contributions
           </h2>
@@ -16,10 +15,9 @@
           <p class="text-muted mb-0">
             View all recorded contributions
           </p>
-
         </div>
 
-
+        <!-- HEADER -->
         <div class="d-flex gap-2">
 
           <!-- Members -->
@@ -28,6 +26,15 @@
             class="btn btn-outline-primary"
           >
             Members
+          </router-link>
+
+
+          <!-- Report -->
+          <router-link
+            to="/contributions/report"
+            class="btn btn-danger"
+          >
+            Report
           </router-link>
 
 
@@ -108,7 +115,7 @@
                   </th>
 
                   <th class="text-center">
-                    Archive
+                    Actions
                   </th>
 
                 </tr>
@@ -202,7 +209,7 @@
                   </td>
 
 
-                  <!-- Archive -->
+                  <!-- Actions -->
                   <td class="text-center">
 
                     <div
@@ -211,17 +218,35 @@
                       class="contribution-detail"
                     >
 
-                      <button
-                        type="button"
-                        class="btn btn-sm archive-btn"
-                        @click="archiveContribution(contribution._id)"
-                      >
+                      <div class="d-flex justify-content-center gap-2">
 
-                        <i class="bi bi-archive me-1"></i>
+                        <!-- Edit -->
+                        <router-link
+                          :to="`/contributions/edit/${contribution._id}`"
+                          class="btn btn-sm edit-btn"
+                        >
 
-                        Archive
+                          <i class="bi bi-pencil me-1"></i>
 
-                      </button>
+                          Edit
+
+                        </router-link>
+
+
+                        <!-- Archive -->
+                        <button
+                          type="button"
+                          class="btn btn-sm archive-btn"
+                          @click="archiveContribution(contribution._id)"
+                        >
+
+                          <i class="bi bi-archive me-1"></i>
+
+                          Archive
+
+                        </button>
+
+                      </div>
 
                     </div>
 
@@ -263,12 +288,22 @@
 
 <script setup>
 
-import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import {
+  ref,
+  computed,
+  onMounted
+} from "vue";
+
+import {
+  useRouter
+} from "vue-router";
 
 import api from "../api";
 
-import { Notyf } from "notyf";
+import {
+  Notyf
+} from "notyf";
+
 import "notyf/notyf.min.css";
 
 
@@ -279,12 +314,18 @@ const notyf =
   new Notyf();
 
 
+// =========================
 // Contributions
+// =========================
+
 const contributions =
   ref([]);
 
 
-// UI state
+// =========================
+// UI State
+// =========================
+
 const isLoading =
   ref(false);
 
@@ -345,7 +386,9 @@ const getContributions = async () => {
       );
 
 
-    console.log(response)
+    console.log(response);
+
+
     contributions.value =
       response.data;
 
@@ -498,84 +541,118 @@ const groupedContributions =
 
     const groups = {};
 
-    contributions.value.forEach(item => {
 
-      if (
-        !item.user ||
-        !item.createdAt
-      ) {
-        return;
+    contributions.value.forEach(
+      item => {
+
+        // IMPORTANT:
+        // Use contribution date,
+        // not createdAt.
+        if (
+          !item.user ||
+          !item.date
+        ) {
+
+          return;
+
+        }
+
+
+        const date =
+          new Date(
+            item.date
+          );
+
+
+        const dateKey =
+          `${date.getFullYear()}-${String(
+            date.getMonth() + 1
+          ).padStart(
+            2,
+            "0"
+          )}-${String(
+            date.getDate()
+          ).padStart(
+            2,
+            "0"
+          )}`;
+
+
+        // Group by:
+        // User + Contribution Date
+        const key =
+          `${item.user._id}-${dateKey}`;
+
+
+        if (!groups[key]) {
+
+          groups[key] = {
+
+            key,
+
+            // IMPORTANT:
+            // Store contribution date
+            date:
+              item.date,
+
+            userId:
+              item.user.userId,
+
+            fullName:
+              item.user.fullName,
+
+            contributions: [],
+
+            totalAmount:
+              0
+
+          };
+
+        }
+
+
+        groups[key].contributions.push({
+
+          _id:
+            item._id,
+
+          contributedTo:
+            item.contributedTo,
+
+          collectionType:
+            item.collectionType,
+
+          description:
+            item.description,
+
+          amount:
+            Number(
+              item.amount
+            ) || 0
+
+        });
+
+
+        groups[key].totalAmount +=
+          Number(
+            item.amount
+          ) || 0;
+
       }
+    );
 
-      const date =
-        new Date(item.createdAt);
 
-      const dateKey =
-        `${date.getFullYear()}-${String(
-          date.getMonth() + 1
-        ).padStart(2, "0")}-${String(
-          date.getDate()
-        ).padStart(2, "0")}`;
-
-      const key =
-        `${item.user._id}-${dateKey}`;
-
-      if (!groups[key]) {
-
-        groups[key] = {
-
-          key,
-
-          date:
-            item.createdAt,
-
-          userId:
-            item.user.userId,
-
-          fullName:
-            item.user.fullName,
-
-          contributions: [],
-
-          totalAmount:
-            0
-
-        };
-
-      }
-
-      groups[key].contributions.push({
-
-        _id:
-          item._id,
-
-        contributedTo:
-          item.contributedTo,
-
-        collectionType:
-          item.collectionType,
-
-        description:
-          item.description,
-
-        amount:
-          Number(item.amount) || 0
-
-      });
-
-      groups[key].totalAmount +=
-        Number(item.amount) || 0;
-
-    });
-
-    return Object.values(groups)
-      .sort(
-        (a, b) =>
-          new Date(b.date) -
-          new Date(a.date)
-      );
+    // Newest contribution date first
+    return Object.values(
+      groups
+    ).sort(
+      (a, b) =>
+        new Date(b.date) -
+        new Date(a.date)
+    );
 
   });
+
 
 // =========================
 // Format Date
@@ -584,6 +661,13 @@ const groupedContributions =
 const formatDate = (
   date
 ) => {
+
+  if (!date) {
+
+    return "";
+
+  }
+
 
   return new Date(
     date
@@ -875,6 +959,41 @@ onMounted(() => {
 
   font-weight:
     700;
+
+}
+
+
+/* =========================
+   Edit Button
+========================= */
+
+.edit-btn {
+
+  color:
+    #1e5a8a;
+
+  background:
+    #eef5fb;
+
+  border:
+    1px solid #cbddea;
+
+  white-space:
+    nowrap;
+
+}
+
+
+.edit-btn:hover {
+
+  color:
+    #ffffff;
+
+  background:
+    #1e5a8a;
+
+  border-color:
+    #1e5a8a;
 
 }
 

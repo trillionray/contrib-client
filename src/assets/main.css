@@ -1,1 +1,39 @@
-main.css
+/* Default Font */
+html,
+body {
+  font-family: Arial, sans-serif !important;
+}
+
+
+/* Banner Title */
+#banner-title {
+  font-weight: bolder;
+  font-size: 54px;
+}
+
+
+html {
+  scrollbar-gutter: stable;
+}
+
+
+/* Motto */
+#motto {
+  font-size: 1.7rem;
+}
+
+
+/* Banner */
+#banner {
+  background: url(https://i.imgur.com/frHbYvL.png),
+    linear-gradient(
+      to right,
+      rgb(255, 255, 255),
+      70%,
+      rgba(126, 209, 247, 0.5)
+    );
+
+  background-size: cover;
+  background-position: center;
+  height: 550px;
+}

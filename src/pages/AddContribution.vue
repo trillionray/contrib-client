@@ -47,157 +47,129 @@
               <!-- Contribution Form -->
               <form @submit.prevent="addContribution">
 
-                <!-- User -->
+                <!-- =========================
+                     User
+                ========================== -->
+
                 <div class="mb-3">
 
                   <label class="form-label fw-semibold">
                     User
                   </label>
 
-                  <select
-                    class="form-select"
-                    v-model="user"
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="userSearch"
+                    list="user-options"
+                    placeholder="Search user..."
+                    autocomplete="off"
                     required
-                  >
+                  />
 
-                    <option
-                      value=""
-                      disabled
-                    >
-                      Select a user
-                    </option>
+                  <datalist id="user-options">
 
                     <option
                       v-for="item in users"
                       :key="item._id"
-                      :value="item._id"
-                    >
-                      {{ item.fullName }}
-                      {{ item.userId ? `- ${item.userId}` : "" }}
-                    </option>
+                      :value="getUserLabel(item)"
+                    ></option>
 
-                  </select>
+                  </datalist>
 
                 </div>
 
 
-                <!-- Contributed To -->
+                <!-- =========================
+                     Contribution Date
+                ========================== -->
+
+                <div class="mb-3">
+
+                  <label class="form-label fw-semibold">
+                    Contribution Date
+                  </label>
+
+                  <input
+                    type="date"
+                    class="form-control"
+                    v-model="date"
+                    required
+                  />
+
+                </div>
+
+
+                <!-- =========================
+                     Contributed To
+                ========================== -->
+
                 <div class="mb-3">
 
                   <label class="form-label fw-semibold">
                     Contributed To
                   </label>
 
-                  <select
-                    class="form-select"
+                  <input
+                    type="text"
+                    class="form-control"
                     v-model="selectedContributedTo"
+                    list="contributed-to-options"
+                    placeholder="Search or enter contribution..."
+                    autocomplete="off"
                     required
-                  >
+                  />
 
-                    <option
-                      value=""
-                      disabled
-                    >
-                      Select contribution
-                    </option>
+                  <datalist id="contributed-to-options">
 
                     <option
                       v-for="item in contributedToOptions"
                       :key="item"
                       :value="item"
-                    >
-                      {{ item }}
-                    </option>
+                    ></option>
 
-                    <option value="__other__">
-                      Other / New Contribution
-                    </option>
-
-                  </select>
+                  </datalist>
 
                 </div>
 
 
-                <!-- New Contributed To -->
-                <div
-                  v-if="selectedContributedTo === '__other__'"
-                  class="mb-3"
-                >
+                <!-- =========================
+                     Collection Type
+                ========================== -->
 
-                  <label class="form-label fw-semibold">
-                    Others / New Contribution
-                  </label>
-
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="newContributedTo"
-                    placeholder="Enter contribution purpose"
-                    required
-                  />
-
-                </div>
-
-
-                <!-- Collection Type -->
                 <div class="mb-3">
 
                   <label class="form-label fw-semibold">
                     Collection Type
                   </label>
 
-                  <select
-                    class="form-select"
+                  <input
+                    type="text"
+                    class="form-control"
                     v-model="selectedCollectionType"
+                    list="collection-type-options"
+                    placeholder="Search or enter collection type..."
+                    autocomplete="off"
                     required
-                  >
+                  />
 
-                    <option
-                      value=""
-                      disabled
-                    >
-                      Select collection type
-                    </option>
+                  <datalist id="collection-type-options">
 
                     <option
                       v-for="item in collectionTypeOptions"
                       :key="item"
                       :value="item"
-                    >
-                      {{ item }}
-                    </option>
+                    ></option>
 
-                    <option value="__other__">
-                      Other / New Collection Type
-                    </option>
-
-                  </select>
+                  </datalist>
 
                 </div>
 
 
-                <!-- New Collection Type -->
-                <div
-                  v-if="selectedCollectionType === '__other__'"
-                  class="mb-3"
-                >
+                <!-- =========================
+                     Description
+                ========================== -->
 
-                  <label class="form-label fw-semibold">
-                    Other / New Collection Type
-                  </label>
-
-                  <input
-                    type="text"
-                    class="form-control"
-                    v-model="newCollectionType"
-                    placeholder="Enter collection type"
-                    required
-                  />
-
-                </div>
-
-
-                <!-- Description -->
                 <div class="mb-3">
 
                   <label class="form-label fw-semibold">
@@ -215,7 +187,10 @@
                 </div>
 
 
-                <!-- Amount -->
+                <!-- =========================
+                     Amount
+                ========================== -->
+
                 <div class="mb-3">
 
                   <label class="form-label fw-semibold">
@@ -243,7 +218,10 @@
                 </div>
 
 
-                <!-- Add Button -->
+                <!-- =========================
+                     Add Button
+                ========================== -->
+
                 <button
                   type="submit"
                   class="btn btn-danger w-100 py-2"
@@ -307,16 +285,16 @@ const router =
 const user =
   ref("");
 
+const userSearch =
+  ref("");
+
+const date =
+  ref("");
+
 const selectedContributedTo =
   ref("");
 
-const newContributedTo =
-  ref("");
-
 const selectedCollectionType =
-  ref("");
-
-const newCollectionType =
   ref("");
 
 const description =
@@ -360,6 +338,23 @@ const successMessage =
 
 
 // =========================
+// User Label
+// =========================
+
+const getUserLabel = (
+  item
+) => {
+
+  return `${item.fullName}${
+    item.userId
+      ? ` - ${item.userId}`
+      : ""
+  }`;
+
+};
+
+
+// =========================
 // Get Users
 // =========================
 
@@ -371,7 +366,6 @@ const getUsers = async () => {
       await api.get(
         "/users/all"
       );
-
 
     users.value =
       response.data;
@@ -401,12 +395,15 @@ const getContributedToOptions = async () => {
         "/contributions/contributed-to"
       );
 
-
     contributedToOptions.value =
-      response.data.map(
-        item =>
-          item.contributedTo
-      );
+      response.data
+        .map(
+          item =>
+            item.contributedTo
+        )
+        .filter(
+          item => item
+        );
 
   } catch (error) {
 
@@ -433,12 +430,15 @@ const getCollectionTypeOptions = async () => {
         "/contributions/collection-types"
       );
 
-
     collectionTypeOptions.value =
-      response.data.map(
-        item =>
-          item.collectionType
-      );
+      response.data
+        .map(
+          item =>
+            item.collectionType
+        )
+        .filter(
+          item => item
+        );
 
   } catch (error) {
 
@@ -470,25 +470,60 @@ const addContribution = async () => {
 
   try {
 
-    // Determine contribution purpose
+    // =========================
+    // Find Selected User
+    // =========================
+
+    const selectedUser =
+      users.value.find(
+        item =>
+          getUserLabel(item) ===
+          userSearch.value.trim()
+      );
+
+
+    // =========================
+    // Validate User
+    // =========================
+
+    if (!selectedUser) {
+
+      errorMessage.value =
+        "Please select a valid user from the suggestions.";
+
+      isLoading.value =
+        false;
+
+      return;
+
+    }
+
+
+    // =========================
+    // Validate Date
+    // =========================
+
+    if (!date.value) {
+
+      errorMessage.value =
+        "Please select a contribution date.";
+
+      isLoading.value =
+        false;
+
+      return;
+
+    }
+
+
+    // =========================
+    // Validate Contribution
+    // =========================
+
     const finalContributedTo =
-      selectedContributedTo.value === "__other__"
-
-        ? newContributedTo.value.trim()
-
-        : selectedContributedTo.value;
+      selectedContributedTo.value.trim();
 
 
-    // Determine collection type
-    const finalCollectionType =
-      selectedCollectionType.value === "__other__"
-
-        ? newCollectionType.value.trim()
-
-        : selectedCollectionType.value;
-
-
-    // Make sure contribution purpose has a value
     if (!finalContributedTo) {
 
       errorMessage.value =
@@ -502,7 +537,14 @@ const addContribution = async () => {
     }
 
 
-    // Make sure collection type has a value
+    // =========================
+    // Validate Collection Type
+    // =========================
+
+    const finalCollectionType =
+      selectedCollectionType.value.trim();
+
+
     if (!finalCollectionType) {
 
       errorMessage.value =
@@ -516,12 +558,19 @@ const addContribution = async () => {
     }
 
 
+    // =========================
+    // Create Contribution
+    // =========================
+
     await api.post(
       "/contributions/create",
       {
 
         user:
-          user.value,
+          selectedUser._id,
+
+        date:
+          date.value,
 
         contributedTo:
           finalContributedTo,
@@ -533,30 +582,39 @@ const addContribution = async () => {
           description.value,
 
         amount:
-          Number(amount.value)
+          Number(
+            amount.value
+          )
 
       }
     );
 
 
+    // =========================
+    // Success
+    // =========================
+
     successMessage.value =
       "Contribution added successfully!";
 
 
-    // Clear form
+    // =========================
+    // Clear Form
+    // =========================
+
     user.value =
+      "";
+
+    userSearch.value =
+      "";
+
+    date.value =
       "";
 
     selectedContributedTo.value =
       "";
 
-    newContributedTo.value =
-      "";
-
     selectedCollectionType.value =
-      "";
-
-    newCollectionType.value =
       "";
 
     description.value =
@@ -566,7 +624,10 @@ const addContribution = async () => {
       "";
 
 
-    // Redirect after saving
+    // =========================
+    // Redirect
+    // =========================
+
     setTimeout(() => {
 
       router.push(
@@ -579,7 +640,6 @@ const addContribution = async () => {
   } catch (error) {
 
     console.error(error);
-
 
     if (error.response) {
 
@@ -609,6 +669,33 @@ const addContribution = async () => {
 // =========================
 
 onMounted(() => {
+
+  // Set default date to today
+  const today =
+    new Date();
+
+  const year =
+    today.getFullYear();
+
+  const month =
+    String(
+      today.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      today.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  date.value =
+    `${year}-${month}-${day}`;
+
 
   getUsers();
 
@@ -707,8 +794,7 @@ onMounted(() => {
    Form Controls
 ========================= */
 
-.form-control,
-.form-select {
+.form-control {
 
   padding:
     12px 14px;
@@ -740,8 +826,7 @@ onMounted(() => {
 }
 
 
-.form-control:focus,
-.form-select:focus {
+.form-control:focus {
 
   color:
     #263238;

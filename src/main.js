@@ -18,10 +18,13 @@ import ErrorPage from "./pages/ErrorPage.vue";
 
 
 import AddContribution from "./pages/AddContribution.vue";
+import EditContribution from "./pages/EditContribution.vue";
 import Contributions from './pages/Contributions.vue';
+import ContributionsReport from './pages/ContributionsReport.vue';
 
 import AddMember from './pages/AddMember.vue';
 import Members from './pages/Members.vue';
+
 
 // createRouter serves as your entire map, holds the list of all pages in your project
 
@@ -29,51 +32,80 @@ import Members from './pages/Members.vue';
 
 const router = createRouter({
   history: createWebHistory(),
+
   routes: [
+
     {
-      path : "/",
+      path: "/",
       name: "Home",
       component: Contributions
     },
 
+
     {
-      path : "/login",
+      path: "/login",
       name: "Login",
       component: LoginPage
     },
+
+
     {
-      path : "/register",
+      path: "/register",
       name: "Register",
       component: RegisterPage
     },
+
+
     {
-      path : "/contributions/add",
+      path: "/contributions/add",
       name: "AddContribution",
       component: AddContribution
     },
+
+
     {
-      path: '/:catchAll(.*)',
-      component: ErrorPage
+      path: "/contributions/edit/:contributionId",
+      name: "EditContribution",
+      component: EditContribution
     },
+
+
     {
-      path : "/contributions",
+      path: "/contributions",
       name: "Contributions",
       component: Contributions
-    },    
+    },
 
 
     {
-      path : "/members/add",
+      path: "/contributions/report",
+      name: "ContributionsReport",
+      component: ContributionsReport
+    },
+
+
+    {
+      path: "/members/add",
       name: "AddMember",
       component: AddMember
-    }, 
+    },
+
+
     {
-      path : "/members",
+      path: "/members",
       name: "Members",
       component: Members
-    },          
+    },
+
+
+    // Keep catch-all last
+    {
+      path: "/:catchAll(.*)",
+      component: ErrorPage
+    }
+
   ]
-})
+});
 
 /* 
   - Every Vue application starts by creating a new application instance with the createApp function.

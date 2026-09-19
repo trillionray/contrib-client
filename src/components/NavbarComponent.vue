@@ -7,7 +7,7 @@
       ========================== -->
       <router-link
         class="navbar-brand fw-bold"
-        :to="globalStore.user.token ? '/dashboard' : '/login'"
+        :to="globalStore.user.token ? '/contributions' : '/login'"
       >
         MY APP
       </router-link>

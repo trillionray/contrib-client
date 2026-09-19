@@ -5,7 +5,6 @@
     <div class="container">
 
       <!-- Header -->
-      <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
@@ -23,7 +22,7 @@
 
         <div class="d-flex gap-2">
 
-          <!-- Add Member -->
+          <!-- Members -->
           <router-link
             to="/members"
             class="btn btn-outline-primary"
@@ -108,6 +107,10 @@
                     Total
                   </th>
 
+                  <th class="text-center">
+                    Archive
+                  </th>
+
                 </tr>
 
               </thead>
@@ -152,7 +155,7 @@
 
                     <div
                       v-for="(contribution, index) in item.contributions"
-                      :key="index"
+                      :key="contribution._id || index"
                       class="contribution-detail"
                     >
 
@@ -174,7 +177,7 @@
 
                     <div
                       v-for="(contribution, index) in item.contributions"
-                      :key="index"
+                      :key="contribution._id || index"
                       class="contribution-detail amount"
                     >
 
@@ -194,6 +197,32 @@
 
                   </td>
 
+
+                  <!-- Archive -->
+                  <td class="text-center">
+
+                    <div
+                      v-for="(contribution, index) in item.contributions"
+                      :key="contribution._id || index"
+                      class="contribution-detail"
+                    >
+
+                      <button
+                        type="button"
+                        class="btn btn-sm archive-btn"
+                        @click="archiveContribution(contribution._id)"
+                      >
+
+                        <i class="bi bi-archive me-1"></i>
+
+                        Archive
+
+                      </button>
+
+                    </div>
+
+                  </td>
+
                 </tr>
 
 
@@ -203,7 +232,7 @@
                 >
 
                   <td
-                    colspan="5"
+                    colspan="6"
                     class="text-center py-5 text-muted"
                   >
                     No contributions found.
@@ -224,6 +253,7 @@
     </div>
 
   </div>
+
 </template>
 
 
@@ -266,7 +296,9 @@ const checkAuthentication = () => {
 
   if (!token) {
 
-    notyf.error("Login as admin")
+    notyf.error(
+      "Login as admin"
+    );
 
     router.push("/login");
 
@@ -287,13 +319,16 @@ const checkAuthentication = () => {
 const getContributions = async () => {
 
   isLoading.value = true;
+
   errorMessage.value = "";
 
 
   try {
 
     const response =
-      await api.get("/contributions/all");
+      await api.get(
+        "/contributions"
+      );
 
 
     contributions.value =
@@ -311,10 +346,17 @@ const getContributions = async () => {
       error.response?.status === 403
     ) {
 
-      localStorage.removeItem("token");
-      notyf.error("Login as admin")
-      
-      router.push("/login");
+      localStorage.removeItem(
+        "token"
+      );
+
+      notyf.error(
+        "Login as admin"
+      );
+
+      router.push(
+        "/login"
+      );
 
       return;
 
@@ -340,6 +382,98 @@ const getContributions = async () => {
 
 
 // =========================
+// Archive Contribution
+// =========================
+
+const archiveContribution = async (
+  contributionId
+) => {
+
+  if (!contributionId) {
+
+    notyf.error(
+      "Contribution ID is missing."
+    );
+
+    return;
+
+  }
+
+
+  const confirmed =
+    window.confirm(
+      "Are you sure you want to archive this contribution?"
+    );
+
+
+  if (!confirmed) {
+
+    return;
+
+  }
+
+
+  try {
+
+    await api.delete(
+      `/contributions/${contributionId}`
+    );
+
+
+    notyf.success(
+      "Contribution archived successfully."
+    );
+
+
+    // Remove archived contribution
+    // from the current list
+    contributions.value =
+      contributions.value.filter(
+        contribution =>
+          contribution._id !==
+          contributionId
+      );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+
+    // Token expired / unauthorized
+    if (
+      error.response?.status === 401 ||
+      error.response?.status === 403
+    ) {
+
+      localStorage.removeItem(
+        "token"
+      );
+
+      notyf.error(
+        "Login as admin"
+      );
+
+      router.push(
+        "/login"
+      );
+
+      return;
+
+    }
+
+
+    notyf.error(
+      error.response?.data?.message ||
+      "Unable to archive contribution."
+    );
+
+  }
+
+};
+
+
+// =========================
 // Group Contributions
 // =========================
 
@@ -348,83 +482,111 @@ const groupedContributions = computed(() => {
   const groups = {};
 
 
-  contributions.value.forEach(item => {
+  contributions.value.forEach(
+    item => {
 
-    if (!item.user || !item.createdAt) {
-      return;
+      if (
+        !item.user ||
+        !item.createdAt
+      ) {
+
+        return;
+
+      }
+
+
+      const date =
+        new Date(
+          item.createdAt
+        );
+
+
+      // Use local calendar date
+      const dateKey =
+        `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(
+          2,
+          "0"
+        )}-${String(
+          date.getDate()
+        ).padStart(
+          2,
+          "0"
+        )}`;
+
+
+      // Same contributor + same date
+      const key =
+        `${item.user._id}-${dateKey}`;
+
+
+      if (!groups[key]) {
+
+        groups[key] = {
+
+          key,
+
+          date:
+            item.createdAt,
+
+          userId:
+            item.user.userId,
+
+          fullName:
+            item.user.fullName,
+
+          contributions: [],
+
+          totalAmount:
+            0
+
+        };
+
+      }
+
+
+      // Add individual contribution
+      groups[key].contributions.push({
+
+        _id:
+          item._id,
+
+        contributedTo:
+          item.contributedTo,
+
+        description:
+          item.description,
+
+        amount:
+          Number(
+            item.amount
+          ) || 0
+
+      });
+
+
+      // Calculate total
+      groups[key].totalAmount +=
+        Number(
+          item.amount
+        ) || 0;
+
     }
+  );
 
 
-    const date =
-      new Date(item.createdAt);
-
-
-    // Use local calendar date
-    const dateKey =
-      `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, "0")}-${String(
-        date.getDate()
-      ).padStart(2, "0")}`;
-
-
-    // Same contributor + same date
-    const key =
-      `${item.user._id}-${dateKey}`;
-
-
-    if (!groups[key]) {
-
-      groups[key] = {
-
-        key,
-
-        date:
-          item.createdAt,
-
-        userId:
-          item.user.userId,
-
-        fullName:
-          item.user.fullName,
-
-        contributions: [],
-
-        totalAmount:
-          0
-
-      };
-
-    }
-
-
-    // Add individual contribution
-    groups[key].contributions.push({
-
-      contributedTo:
-        item.contributedTo,
-
-      description:
-        item.description,
-
-      amount:
-        Number(item.amount) || 0
-
-    });
-
-
-    // Calculate total
-    groups[key].totalAmount +=
-      Number(item.amount) || 0;
-
-  });
-
-
-  return Object.values(groups)
+  return Object.values(
+    groups
+  )
     .sort(
       (a, b) =>
-        new Date(b.date) -
-        new Date(a.date)
+        new Date(
+          b.date
+        ) -
+        new Date(
+          a.date
+        )
     );
 
 });
@@ -434,14 +596,25 @@ const groupedContributions = computed(() => {
 // Format Date
 // =========================
 
-const formatDate = (date) => {
+const formatDate = (
+  date
+) => {
 
-  return new Date(date).toLocaleDateString(
+  return new Date(
+    date
+  ).toLocaleDateString(
     "en-PH",
     {
-      year: "numeric",
-      month: "short",
-      day: "numeric"
+
+      year:
+        "numeric",
+
+      month:
+        "short",
+
+      day:
+        "numeric"
+
     }
   );
 
@@ -452,13 +625,22 @@ const formatDate = (date) => {
 // Format Amount
 // =========================
 
-const formatAmount = (amount) => {
+const formatAmount = (
+  amount
+) => {
 
-  return Number(amount).toLocaleString(
+  return Number(
+    amount
+  ).toLocaleString(
     "en-PH",
     {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+
+      minimumFractionDigits:
+        2,
+
+      maximumFractionDigits:
+        2
+
     }
   );
 
@@ -472,8 +654,12 @@ const formatAmount = (amount) => {
 onMounted(() => {
 
   // Stop immediately if not logged in
-  if (!checkAuthentication()) {
+  if (
+    !checkAuthentication()
+  ) {
+
     return;
+
   }
 
 
@@ -484,6 +670,7 @@ onMounted(() => {
 
 </script>
 
+
 <style scoped>
 
 /* =========================
@@ -492,11 +679,14 @@ onMounted(() => {
 
 .contribution-page {
 
-  min-height: calc(100vh - 60px);
+  min-height:
+    calc(100vh - 60px);
 
-  padding: 50px 0;
+  padding:
+    50px 0;
 
-  background: #eef3f7;
+  background:
+    #eef3f7;
 
 }
 
@@ -507,14 +697,16 @@ onMounted(() => {
 
 .contribution-page h2 {
 
-  color: #1e3a5f;
+  color:
+    #1e3a5f;
 
 }
 
 
 .contribution-page .text-muted {
 
-  color: #6b7c8f !important;
+  color:
+    #6b7c8f !important;
 
 }
 
@@ -525,15 +717,23 @@ onMounted(() => {
 
 .contribution-card {
 
-  border-radius: 14px;
+  border-radius:
+    14px;
 
-  overflow: hidden;
+  overflow:
+    hidden;
 
-  background: #ffffff;
+  background:
+    #ffffff;
 
   box-shadow:
     0 8px 25px
-    rgba(30, 58, 95, 0.10) !important;
+    rgba(
+      30,
+      58,
+      95,
+      0.10
+    ) !important;
 
 }
 
@@ -544,41 +744,50 @@ onMounted(() => {
 
 .table {
 
-  color: #263238;
+  color:
+    #263238;
 
 }
 
 
 .table thead th {
 
-  padding: 15px 18px;
+  padding:
+    15px 18px;
 
-  color: #34495e;
+  color:
+    #34495e;
 
-  background: #f5f7f9;
+  background:
+    #f5f7f9;
 
   border-bottom:
     1px solid #dce3e9;
 
-  font-size: 14px;
+  font-size:
+    14px;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 
 }
 
 
 .table tbody td {
 
-  padding: 16px 18px;
+  padding:
+    16px 18px;
 
-  border-color: #edf1f4;
+  border-color:
+    #edf1f4;
 
 }
 
 
 .table tbody tr:last-child td {
 
-  border-bottom: none;
+  border-bottom:
+    none;
 
 }
 
@@ -589,7 +798,8 @@ onMounted(() => {
 
 .contribution-detail {
 
-  padding: 5px 0;
+  padding:
+    5px 0;
 
 }
 
@@ -597,9 +807,11 @@ onMounted(() => {
 .contribution-detail
 + .contribution-detail {
 
-  margin-top: 6px;
+  margin-top:
+    6px;
 
-  padding-top: 8px;
+  padding-top:
+    8px;
 
   border-top:
     1px solid #edf1f4;
@@ -613,11 +825,14 @@ onMounted(() => {
 
 .amount {
 
-  color: #34495e;
+  color:
+    #34495e;
 
-  font-size: 15px;
+  font-size:
+    15px;
 
-  font-weight: 600;
+  font-weight:
+    600;
 
 }
 
@@ -628,11 +843,49 @@ onMounted(() => {
 
 .total-amount {
 
-  color: #1e3a5f;
+  color:
+    #1e3a5f;
 
-  font-size: 16px;
+  font-size:
+    16px;
 
-  font-weight: 700;
+  font-weight:
+    700;
+
+}
+
+
+/* =========================
+   Archive Button
+========================= */
+
+.archive-btn {
+
+  color:
+    #1e3a5f;
+
+  background:
+    #eef3f7;
+
+  border:
+    1px solid #dce3e9;
+
+  white-space:
+    nowrap;
+
+}
+
+
+.archive-btn:hover {
+
+  color:
+    #263238;
+
+  background:
+    #f4c95d;
+
+  border-color:
+    #f4c95d;
 
 }
 
@@ -643,31 +896,39 @@ onMounted(() => {
 
 .btn {
 
-  font-weight: 600;
+  font-weight:
+    600;
 
-  border-radius: 7px;
+  border-radius:
+    7px;
 
 }
 
 
 .btn-danger {
 
-  color: #263238;
+  color:
+    #263238;
 
-  background: #f4c95d;
+  background:
+    #f4c95d;
 
-  border-color: #f4c95d;
+  border-color:
+    #f4c95d;
 
 }
 
 
 .btn-danger:hover {
 
-  color: #263238;
+  color:
+    #263238;
 
-  background: #e9b949;
+  background:
+    #e9b949;
 
-  border-color: #e9b949;
+  border-color:
+    #e9b949;
 
 }
 
@@ -678,13 +939,17 @@ onMounted(() => {
 
 .alert-danger {
 
-  color: #7a3030;
+  color:
+    #7a3030;
 
-  background: #fbeaea;
+  background:
+    #fbeaea;
 
-  border-color: #efcaca;
+  border-color:
+    #efcaca;
 
-  border-radius: 7px;
+  border-radius:
+    7px;
 
 }
 
@@ -697,14 +962,16 @@ onMounted(() => {
 
   .contribution-page {
 
-    padding: 35px 15px;
+    padding:
+      35px 15px;
 
   }
 
 
   .table {
 
-    min-width: 850px;
+    min-width:
+      950px;
 
   }
 

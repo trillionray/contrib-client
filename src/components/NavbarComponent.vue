@@ -9,7 +9,7 @@
         class="navbar-brand fw-bold"
         :to="globalStore.user.token ? '/contributions' : '/login'"
       >
-        MY APP
+        Mother Earth
       </router-link>
 
 

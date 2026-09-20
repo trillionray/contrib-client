@@ -506,7 +506,17 @@
 
         <div class="card-body">
 
-          <div class="table-responsive">
+          <!--
+            IMPORTANT:
+            tableReady temporarily removes the table from
+            the DOM while DataTables is being rebuilt.
+          -->
+
+          <div
+            v-if="tableReady"
+            :key="tableRenderKey"
+            class="table-responsive"
+          >
 
             <table
               ref="reportTable"
@@ -801,9 +811,11 @@
                            NORMAL GROUP DETAILS
                       ========================== -->
 
-                      <template v-else-if="
-                        column.key !== 'totalAmount'
-                      ">
+                      <template
+                        v-else-if="
+                          column.key !== 'totalAmount'
+                        "
+                      >
 
                         <div
                           v-for="(
@@ -917,9 +929,7 @@
                           >
 
                             <div
-                              class="
-                                contribution-description
-                              "
+                              class="contribution-description"
                             >
 
                               {{
@@ -1018,7 +1028,10 @@
 
                   <th
                     :colspan="
-                      visibleColumns.length - 1
+                      Math.max(
+                        visibleColumns.length - 1,
+                        1
+                      )
                     "
                     class="text-end"
                   >
@@ -1029,6 +1042,18 @@
 
 
                   <th
+                    v-if="visibleColumns.length > 1"
+                    class="text-end grand-total"
+                  >
+
+                    ₱{{ formatAmount(
+                      reportTotal
+                    ) }}
+
+                  </th>
+
+                  <th
+                    v-else
                     class="text-end grand-total"
                   >
 
@@ -1043,6 +1068,27 @@
               </tfoot>
 
             </table>
+
+          </div>
+
+
+          <!-- =========================
+               Table Rebuilding
+          ========================== -->
+
+          <div
+            v-else
+            class="text-center py-5"
+          >
+
+            <div
+              class="spinner-border text-secondary mb-2"
+              role="status"
+            ></div>
+
+            <div class="text-muted">
+              Updating report...
+            </div>
 
           </div>
 
@@ -1110,11 +1156,6 @@ import {
 
 import "notyf/notyf.min.css";
 
-
-// =========================
-// DataTables
-// =========================
-
 import DataTable from "datatables.net-bs5";
 
 import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
@@ -1136,6 +1177,32 @@ const reportTable =
 
 let dataTable =
   null;
+
+
+// =========================
+// IMPORTANT TABLE STATE
+// =========================
+
+/*
+  This prevents Vue and DataTables from trying to
+  modify the same table at the same time.
+*/
+
+const tableReady =
+  ref(false);
+
+
+const tableRenderKey =
+  ref(0);
+
+
+// =========================
+// Prevent Watcher During
+// Initial Report Creation
+// =========================
+
+const rebuildingReport =
+  ref(false);
 
 
 // =========================
@@ -1186,7 +1253,7 @@ const collectionTypeOptions =
 
 
 // =========================
-// Report Data
+// Report
 // =========================
 
 const report =
@@ -1239,7 +1306,7 @@ const availableColumns = [
 
   {
     key: "description",
-    label: "Description",
+    label: "Particulars",
     default: false
   },
 
@@ -1372,9 +1439,6 @@ const isRequiredColumn = (
   columnKey
 ) => {
 
-  // Amount is required when
-  // there is no grouping
-
   if (
     !groupBy.value &&
     columnKey === "amount"
@@ -1422,9 +1486,6 @@ const toggleColumn = (
   columnKey
 ) => {
 
-  // Group columns are
-  // always visible
-
   if (
     isGroupingColumn(columnKey)
   ) {
@@ -1433,9 +1494,6 @@ const toggleColumn = (
 
   }
 
-
-  // Amount is required
-  // without grouping
 
   if (
     isRequiredColumn(columnKey)
@@ -1458,12 +1516,8 @@ const toggleColumn = (
 
   if (exists) {
 
-    // Prevent removing
-    // the last optional column
-
     if (
-      selectedColumns.value.length ===
-      1
+      selectedColumns.value.length === 1
     ) {
 
       notyf.error(
@@ -1481,14 +1535,50 @@ const toggleColumn = (
           column !== columnKey
       );
 
-  } else {
-
-    selectedColumns.value = [
-      ...selectedColumns.value,
-      columnKey
-    ];
+    return;
 
   }
+
+
+  /*
+    IMPORTANT:
+
+    Do not simply append the column.
+
+    Rebuild the selected list using the original
+    availableColumns order.
+
+    Therefore:
+
+    Date
+    Contributor
+    Contributed To
+    Collection Type
+    Description
+    Amount
+
+    Date will return to its original position
+    after being checked again.
+  */
+
+  const newSelectedColumns = [
+    ...selectedColumns.value,
+    columnKey
+  ];
+
+
+  selectedColumns.value =
+    availableColumns
+      .filter(
+        column =>
+          newSelectedColumns.includes(
+            column.key
+          )
+      )
+      .map(
+        column =>
+          column.key
+      );
 
 };
 
@@ -1503,10 +1593,6 @@ const visibleColumns =
     const groupKeys =
       groupingColumns.value;
 
-
-    // =========================
-    // Grouped Report
-    // =========================
 
     if (
       groupBy.value
@@ -1547,10 +1633,6 @@ const visibleColumns =
 
     }
 
-
-    // =========================
-    // No Grouping
-    // =========================
 
     return availableColumns.filter(
       column =>
@@ -1667,7 +1749,7 @@ const getUsers = async () => {
 
 
 // =========================
-// Get Contributed To Options
+// Get Contributed To
 // =========================
 
 const getContributedToOptions =
@@ -1705,7 +1787,7 @@ const getContributedToOptions =
 
 
 // =========================
-// Get Collection Type Options
+// Get Collection Types
 // =========================
 
 const getCollectionTypeOptions =
@@ -1752,7 +1834,19 @@ const destroyDataTable = () => {
     dataTable
   ) {
 
-    dataTable.destroy();
+    try {
+
+      dataTable.destroy();
+
+    } catch (error) {
+
+      console.warn(
+        "DataTable destroy warning:",
+        error
+      );
+
+    }
+
 
     dataTable =
       null;
@@ -1763,7 +1857,7 @@ const destroyDataTable = () => {
 
 
 // =========================
-// Get DataTable Order
+// DataTable Ordering
 // =========================
 
 const getDataTableOrder = () => {
@@ -1789,12 +1883,7 @@ const getDataTableOrder = () => {
   }
 
 
-  return [
-    [
-      0,
-      "asc"
-    ]
-  ];
+  return [];
 
 };
 
@@ -1819,16 +1908,6 @@ const initializeDataTable =
 
 
     destroyDataTable();
-
-
-    if (
-      reportRows.value.length ===
-      0
-    ) {
-
-      return;
-
-    }
 
 
     dataTable =
@@ -1910,6 +1989,69 @@ const initializeDataTable =
 
 
 // =========================
+// Rebuild DataTable
+// =========================
+
+const rebuildDataTable =
+  async () => {
+
+    /*
+      1. Remove the table from Vue's DOM.
+    */
+
+    tableReady.value =
+      false;
+
+
+    /*
+      2. Destroy DataTables while
+         the old table still exists.
+    */
+
+    destroyDataTable();
+
+
+    /*
+      3. Let Vue remove the old table.
+    */
+
+    await nextTick();
+
+
+    /*
+      4. Force a completely new table
+         instance.
+    */
+
+    tableRenderKey.value++;
+
+
+    /*
+      5. Put a fresh table into the DOM.
+    */
+
+    tableReady.value =
+      true;
+
+
+    /*
+      6. Let Vue render the new table.
+    */
+
+    await nextTick();
+
+
+    /*
+      7. Initialize DataTables on
+         the new table.
+    */
+
+    await initializeDataTable();
+
+  };
+
+
+// =========================
 // Create Report
 // =========================
 
@@ -1919,10 +2061,6 @@ const createReport =
     errorMessage.value =
       "";
 
-
-    // =========================
-    // Validate Dates
-    // =========================
 
     if (
       !startDate.value ||
@@ -2009,23 +2147,16 @@ const createReport =
     }
 
 
-    // =========================
-    // Destroy Existing Table
-    // =========================
-
-    destroyDataTable();
-
-
-    // =========================
-    // Generate Report
-    // =========================
-
     isLoading.value =
       true;
 
-    reportGenerated.value =
-      false;
 
+    /*
+      Do NOT destroy DataTables here.
+
+      We only rebuild it after the API request
+      succeeds.
+    */
 
     try {
 
@@ -2060,18 +2191,40 @@ const createReport =
         );
 
 
-      console.log(
-        "Report:",
-        response.data
-      );
+      /*
+        Axios already parses JSON.
+
+        Therefore DO NOT do:
+
+        response.json()
+
+        here.
+      */
+
+      if (
+        !response ||
+        !response.data
+      ) {
+
+        throw new Error(
+          "The server returned an empty response."
+        );
+
+      }
 
 
       report.value =
         response.data;
 
 
-      // Reset columns for
-      // every new report
+      /*
+        Set the default columns for
+        the newly generated report.
+      */
+
+      rebuildingReport.value =
+        true;
+
 
       resetColumns();
 
@@ -2080,7 +2233,15 @@ const createReport =
         true;
 
 
-      await initializeDataTable();
+      /*
+        Fresh table.
+      */
+
+      await rebuildDataTable();
+
+
+      rebuildingReport.value =
+        false;
 
 
       notyf.success(
@@ -2088,16 +2249,12 @@ const createReport =
       );
 
     } catch (error) {
-      
+
       console.error(
         "Unable to generate report:",
         error
       );
 
-
-      // =========================
-      // Unauthorized
-      // =========================
 
       if (
         error.response?.status === 401 ||
@@ -2124,8 +2281,18 @@ const createReport =
       }
 
 
+      /*
+        Axios errors can contain the backend's
+        actual message here.
+      */
+
+      const serverMessage =
+        error.response?.data?.message;
+
+
       errorMessage.value =
-        error.response?.data?.message ||
+        serverMessage ||
+        error.message ||
         "Unable to generate report.";
 
 
@@ -2133,7 +2300,11 @@ const createReport =
         errorMessage.value
       );
 
+
     } finally {
+
+      rebuildingReport.value =
+        false;
 
       isLoading.value =
         false;
@@ -2409,9 +2580,6 @@ const groupedContributions =
           ) || 0;
 
 
-        // Keep the first
-        // valid date
-
         if (
           !group.date &&
           contribution.date
@@ -2431,10 +2599,6 @@ const groupedContributions =
         groups.values()
       );
 
-
-    // =========================
-    // Sort Groups
-    // =========================
 
     if (
       groupBy.value ===
@@ -2730,11 +2894,27 @@ const formatDate = (
   }
 
 
-  return new Date(
-    date
-  ).toLocaleDateString(
+  const parsedDate =
+    new Date(date);
+
+
+  if (
+    isNaN(
+      parsedDate.getTime()
+    )
+  ) {
+
+    return "";
+
+  }
+
+
+  return parsedDate.toLocaleDateString(
     "en-PH",
     {
+
+      timeZone:
+        "Asia/Manila",
 
       year:
         "numeric",
@@ -2760,7 +2940,7 @@ const formatAmount = (
 ) => {
 
   return Number(
-    amount
+    amount || 0
   ).toLocaleString(
     "en-PH",
     {
@@ -2797,19 +2977,24 @@ watch(
     }
 
 
-    // IMPORTANT:
-    // Destroy DataTables FIRST.
-    // Vue then changes the table.
-    // After Vue renders, recreate
-    // DataTables.
+    /*
+      createReport() already rebuilds the table
+      after generating a new report.
 
-    destroyDataTable();
+      This prevents the resetColumns() operation
+      from causing a second rebuild.
+    */
+
+    if (
+      rebuildingReport.value
+    ) {
+
+      return;
+
+    }
 
 
-    await nextTick();
-
-
-    await initializeDataTable();
+    await rebuildDataTable();
 
   },
   {
@@ -2819,7 +3004,7 @@ watch(
 
 
 // =========================
-// Load Data
+// Mounted
 // =========================
 
 onMounted(() => {

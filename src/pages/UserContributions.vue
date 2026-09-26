@@ -15,9 +15,7 @@
                         {{ selectedUser.fullName || "Unknown User" }}
                     </h5>
 
-                    <small class="text-muted d-block">
-                        {{ selectedUser.email || "No email" }}
-                    </small>
+
 
                     <small class="text-muted">
                         {{ appliedStartDate || "Beginning" }}
@@ -369,8 +367,7 @@
                         </div>
 
 
-                        <!-- Buttons -->
-                        <div class="col-md-4 d-flex gap-2">
+                        <div class="col-md-4 d-flex gap-2 flex-wrap">
 
                             <button
                                 type="button"
@@ -390,16 +387,22 @@
                                 Clear
                             </button>
 
+                            <button
+                                type="button"
+                                class="btn btn-success"
+                                :disabled="loading || users.length === 0"
+                                @click="exportToExcel"
+                            >
+                                Export Excel
+                            </button>
+
                         </div>
 
                     </div>
 
 
                     <!-- Applied Date Range -->
-                    <div
-                        v-if="appliedStartDate || appliedEndDate"
-                        class="mt-3"
-                    >
+                    <div v-if="appliedStartDate || appliedEndDate" class="mt-3">
 
                         <small class="text-muted">
 
@@ -613,10 +616,6 @@
                                             {{ user.fullName || "Unknown User" }}
                                         </div>
 
-                                        <small class="text-muted">
-                                            {{ user.email || "No email" }}
-                                        </small>
-
                                     </td>
 
 
@@ -789,6 +788,8 @@
 	    nextTick
 	} from "vue";
 
+	import * as XLSX from "xlsx";
+
 	import DataTable from "datatables.net-bs5";
 	import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
 
@@ -812,8 +813,18 @@
 
 
 	// Last successfully applied date range
-	const appliedStartDate = ref("");
-	const appliedEndDate = ref("");
+	const appliedDateRange = ref({
+	    startDate: "",
+	    endDate: ""
+	});
+
+	const appliedStartDate = computed(() => {
+	    return appliedDateRange.value.startDate;
+	});
+
+	const appliedEndDate = computed(() => {
+	    return appliedDateRange.value.endDate;
+	});
 
 
 	// Selected user for modal
@@ -1261,9 +1272,367 @@
 	};
 
 
+
+
 	// --------------------------------------------------
-	// Get Users
+	// Export Excel
 	// --------------------------------------------------
+
+	const exportToExcel = () => {
+
+	    if (!users.value.length) {
+	        return;
+	    }
+
+	    const rows = [];
+
+	    rows.push([
+	        "CONTRIBUTION MARKS"
+	    ]);
+
+	    rows.push([
+	        "Date Range",
+	        `${appliedStartDate.value || "Beginning"} → ${
+	            appliedEndDate.value || "Present"
+	        }`
+	    ]);
+
+	    rows.push([]);
+
+	    const headers = [
+	        "User ID",
+	        "Name"
+	    ];
+
+	    contributedToColumns.value.forEach(
+	        contributedTo => {
+
+	            headers.push(
+	                contributedTo
+	            );
+
+	        }
+	    );
+
+	    headers.push("Total");
+
+	    rows.push(headers);
+
+	    users.value.forEach(
+	        user => {
+
+	            const row = [
+	                user.userId || "No User ID",
+	                user.fullName || "Unknown User"
+	            ];
+
+	            contributedToColumns.value.forEach(
+	                contributedTo => {
+
+	                    row.push(
+	                        hasContribution(
+	                            user,
+	                            contributedTo
+	                        )
+	                            ? "✓"
+	                            : ""
+	                    );
+
+	                }
+	            );
+
+	            row.push(
+	                Number(
+	                    user.totalContribution
+	                ) || 0
+	            );
+
+	            rows.push(row);
+
+	        }
+	    );
+
+	    const grandTotalRow = [
+	        "",
+	        "GRAND TOTAL"
+	    ];
+
+	    contributedToColumns.value.forEach(
+	        contributedTo => {
+
+	            grandTotalRow.push(
+	                getContributedToTotal(
+	                    contributedTo
+	                )
+	            );
+
+	        }
+	    );
+
+	    grandTotalRow.push(
+	        grandTotal.value
+	    );
+
+	    rows.push([]);
+	    rows.push(grandTotalRow);
+
+
+	    // --------------------------------------------------
+	    // Worksheet
+	    // --------------------------------------------------
+
+	    const worksheet =
+	        XLSX.utils.aoa_to_sheet(
+	            rows
+	        );
+
+
+	    const totalColumns =
+	        2 +
+	        contributedToColumns.value.length +
+	        1;
+
+
+	    // --------------------------------------------------
+	    // Column Width
+	    // --------------------------------------------------
+
+	    const columnWidths = [];
+
+	    for (
+	        let colIndex = 0;
+	        colIndex < totalColumns;
+	        colIndex++
+	    ) {
+
+	        let maxLength = 0;
+
+	        rows.forEach(
+	            row => {
+
+	                const value =
+	                    row[colIndex] !== undefined &&
+	                    row[colIndex] !== null
+	                        ? String(
+	                            row[colIndex]
+	                        )
+	                        : "";
+
+	                maxLength =
+	                    Math.max(
+	                        maxLength,
+	                        value.length
+	                    );
+
+	            }
+	        );
+
+	        columnWidths.push({
+	            wch:
+	                Math.max(
+	                    maxLength + 2,
+	                    10
+	                )
+	        });
+
+	    }
+
+	    worksheet["!cols"] =
+	        columnWidths;
+
+
+	    // --------------------------------------------------
+	    // Center Checkmarks
+	    // --------------------------------------------------
+
+	    for (
+	        let rowIndex = 4;
+	        rowIndex < rows.length;
+	        rowIndex++
+	    ) {
+
+	        for (
+	            let colIndex = 2;
+	            colIndex < totalColumns - 1;
+	            colIndex++
+	        ) {
+
+	            const cellAddress =
+	                XLSX.utils.encode_cell({
+	                    r: rowIndex,
+	                    c: colIndex
+	                });
+
+	            if (
+	                worksheet[cellAddress] &&
+	                worksheet[cellAddress].v === "✓"
+	            ) {
+
+	                worksheet[cellAddress].s = {
+	                    alignment: {
+	                        horizontal: "center",
+	                        vertical: "center"
+	                    }
+	                };
+
+	            }
+
+	        }
+
+	    }
+
+
+	    // --------------------------------------------------
+	    // Format Total Column
+	    // --------------------------------------------------
+
+	    for (
+	        let rowIndex = 4;
+	        rowIndex < rows.length;
+	        rowIndex++
+	    ) {
+
+	        const cellAddress =
+	            XLSX.utils.encode_cell({
+	                r: rowIndex,
+	                c: totalColumns - 1
+	            });
+
+	        if (
+	            worksheet[cellAddress] &&
+	            typeof worksheet[cellAddress].v === "number"
+	        ) {
+
+	            worksheet[cellAddress].z =
+	                '₱#,##0.00';
+
+	        }
+
+	    }
+
+
+	    // --------------------------------------------------
+	    // Format Grand Total
+	    // --------------------------------------------------
+
+	    const grandTotalRowIndex =
+	        rows.length - 1;
+
+	    for (
+	        let colIndex = 2;
+	        colIndex < totalColumns;
+	        colIndex++
+	    ) {
+
+	        const cellAddress =
+	            XLSX.utils.encode_cell({
+	                r: grandTotalRowIndex,
+	                c: colIndex
+	            });
+
+	        if (
+	            worksheet[cellAddress] &&
+	            typeof worksheet[cellAddress].v === "number"
+	        ) {
+
+	            worksheet[cellAddress].z =
+	                '₱#,##0.00';
+
+	        }
+
+	    }
+
+
+	    // --------------------------------------------------
+	    // Workbook
+	    // --------------------------------------------------
+
+	    const workbook =
+	        XLSX.utils.book_new();
+
+	    XLSX.utils.book_append_sheet(
+	        workbook,
+	        worksheet,
+	        "Contribution Marks"
+	    );
+
+
+	    // --------------------------------------------------
+	    // Generate Filename
+	    // --------------------------------------------------
+
+	    const start =
+	        appliedDateRange.value.startDate || "beginning";
+
+	    const end =
+	        appliedDateRange.value.endDate || "present";
+
+	    const filename =
+	        `Contribution-Marks-${start}-to-${end}.xlsx`;
+
+
+	    // --------------------------------------------------
+	    // Create Excel File
+	    // --------------------------------------------------
+
+	    const excelBuffer =
+	        XLSX.write(
+	            workbook,
+	            {
+	                bookType: "xlsx",
+	                type: "array"
+	            }
+	        );
+
+	    const blob =
+	        new Blob(
+	            [excelBuffer],
+	            {
+	                type:
+	                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	            }
+	        );
+
+
+	    // --------------------------------------------------
+	    // Force Download With Filename
+	    // --------------------------------------------------
+
+	    const url =
+	        URL.createObjectURL(blob);
+
+	    const link =
+	        document.createElement("a");
+
+	    link.href =
+	        url;
+
+	    link.download =
+	        filename;
+
+	    document.body.appendChild(
+	        link
+	    );
+
+	    link.click();
+
+	    document.body.removeChild(
+	        link
+	    );
+
+	    URL.revokeObjectURL(
+	        url
+	    );
+
+
+	    console.log(
+	        "Downloaded filename:",
+	        filename
+	    );
+
+	};
+
+	//--------------------------------------------
 
 	const getUsers = async () => {
 
@@ -1327,12 +1696,11 @@
 	            response.data || [];
 
 
-	        // Save successfully applied date range
-	        appliedStartDate.value =
-	            startDate.value;
-
-	        appliedEndDate.value =
-	            endDate.value;
+	        // Save the exact date range used for this request
+	        appliedDateRange.value = {
+	            startDate: params.startDate || "",
+	            endDate: params.endDate || ""
+	        };
 
 
 	        // Reset selected user

@@ -1,3 +1,4 @@
+
 <template>
 
   <div class="contribution-page">
@@ -406,15 +407,27 @@
             </div>
 
 
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              @click="resetColumns"
-            >
+            <div class="d-flex gap-2">
 
-              Reset
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-success"
+                @click="exportToExcel"
+                :disabled="reportRows.length === 0"
+              >
+                <i class="bi bi-file-earmark-excel me-1"></i>
+                Export to Excel
+              </button>
 
-            </button>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                @click="resetColumns"
+              >
+                Reset
+              </button>
+
+            </div>
 
           </div>
 
@@ -1147,6 +1160,8 @@ import {
 import {
   useRouter
 } from "vue-router";
+
+import * as XLSX from "xlsx";
 
 import api from "../api";
 
@@ -2960,6 +2975,497 @@ const formatAmount = (
 // =========================
 // Watch Table Configuration
 // =========================
+
+
+// =========================
+// Export Report to Excel
+// =========================
+
+const exportToExcel = () => {
+
+  if (
+    !report.value ||
+    reportRows.value.length === 0
+  ) {
+
+    notyf.error(
+      "There is no report data to export."
+    );
+
+    return;
+
+  }
+
+
+  const rows = [];
+
+
+  // =========================
+  // Report Title
+  // =========================
+
+  rows.push([
+    "CONTRIBUTION REPORT"
+  ]);
+
+
+  // =========================
+  // Date Range
+  // =========================
+
+  rows.push([
+    "Date Range",
+    `${startDate.value} → ${endDate.value}`
+  ]);
+
+
+  // =========================
+  // Filters
+  // =========================
+
+  const filters = [];
+
+  if (name.value.trim()) {
+    filters.push(
+      `Contributor: ${name.value.trim()}`
+    );
+  }
+
+  if (contributedTo.value.trim()) {
+    filters.push(
+      `Contributed To: ${contributedTo.value.trim()}`
+    );
+  }
+
+  if (collectionType.value.trim()) {
+    filters.push(
+      `Collection Type: ${collectionType.value.trim()}`
+    );
+  }
+
+  if (groupBy.value) {
+    filters.push(
+      `Group By: ${
+        groupBy.value === "date-user"
+          ? "Date + User"
+          : groupBy.value
+      }`
+    );
+  }
+
+
+  if (filters.length > 0) {
+
+    rows.push([
+      "Filters",
+      filters.join(" | ")
+    ]);
+
+  }
+
+
+  rows.push([]);
+
+
+  // =========================
+  // Headers
+  // =========================
+
+  const headers =
+    visibleColumns.value.map(
+      column =>
+        column.label
+    );
+
+  rows.push(headers);
+
+
+  // =========================
+  // Cell Value
+  // =========================
+
+  const getExportValue = (
+    item,
+    columnKey
+  ) => {
+
+    // DATE
+
+    if (
+      columnKey === "date"
+    ) {
+
+      return formatDate(
+        item.date
+      );
+
+    }
+
+
+    // CONTRIBUTOR
+
+    if (
+      columnKey === "contributor"
+    ) {
+
+      return (
+        item.user?.fullName ||
+        item.groupLabel ||
+        "Unknown User"
+      );
+
+    }
+
+
+    // CONTRIBUTED TO
+
+    if (
+      columnKey === "contributedTo"
+    ) {
+
+      return (
+        item.contributedTo ||
+        item.groupLabel ||
+        ""
+      );
+
+    }
+
+
+    // COLLECTION TYPE
+
+    if (
+      columnKey === "collectionType"
+    ) {
+
+      return (
+        item.collectionType ||
+        item.groupLabel ||
+        ""
+      );
+
+    }
+
+
+    // DESCRIPTION
+
+    if (
+      columnKey === "description"
+    ) {
+
+      return (
+        item.description ||
+        ""
+      );
+
+    }
+
+
+    // AMOUNT
+
+    if (
+      columnKey === "amount"
+    ) {
+
+      return Number(
+        item.amount
+      ) || 0;
+
+    }
+
+
+    // TOTAL AMOUNT
+
+    if (
+      columnKey === "totalAmount"
+    ) {
+
+      return Number(
+        item.totalAmount
+      ) || 0;
+
+    }
+
+
+    return "";
+
+  };
+
+
+  // =========================
+  // Rows
+  // =========================
+
+  reportRows.value.forEach(
+    item => {
+
+      const row = [];
+
+
+      visibleColumns.value.forEach(
+        column => {
+
+          /*
+            For grouped reports, normal detail
+            columns can contain multiple contributions.
+          */
+
+          if (
+            groupBy.value &&
+            !isGroupingColumn(
+              column.key
+            ) &&
+            column.key !== "totalAmount"
+          ) {
+
+            const values =
+              (item.contributions || [])
+                .map(
+                  contribution =>
+                    getExportValue(
+                      contribution,
+                      column.key
+                    )
+                )
+                .filter(
+                  value =>
+                    value !== ""
+                );
+
+
+            row.push(
+              values.join("\n")
+            );
+
+          } else {
+
+            row.push(
+              getExportValue(
+                item,
+                column.key
+              )
+            );
+
+          }
+
+        }
+      );
+
+
+      rows.push(row);
+
+    }
+  );
+
+
+  // =========================
+  // Grand Total
+  // =========================
+
+  const grandTotalRow =
+    new Array(
+      visibleColumns.value.length
+    ).fill("");
+
+
+  if (
+    visibleColumns.value.length === 1
+  ) {
+
+    grandTotalRow[0] =
+      reportTotal.value;
+
+  } else {
+
+    grandTotalRow[
+      visibleColumns.value.length - 2
+    ] =
+      "GRAND TOTAL";
+
+    grandTotalRow[
+      visibleColumns.value.length - 1
+    ] =
+      reportTotal.value;
+
+  }
+
+
+  rows.push([]);
+
+  rows.push(
+    grandTotalRow
+  );
+
+
+  // =========================
+  // Create Worksheet
+  // =========================
+
+  const worksheet =
+    XLSX.utils.aoa_to_sheet(
+      rows
+    );
+
+
+  // =========================
+  // Column Width
+  // =========================
+
+  const columnCount =
+    visibleColumns.value.length;
+
+  const columnWidths = [];
+
+
+  for (
+    let colIndex = 0;
+    colIndex < columnCount;
+    colIndex++
+  ) {
+
+    let maxLength = 0;
+
+
+    rows.forEach(
+      row => {
+
+        const value =
+          row[colIndex] !== undefined &&
+          row[colIndex] !== null
+            ? String(
+                row[colIndex]
+              )
+            : "";
+
+
+        const longestLine =
+          value
+            .split("\n")
+            .reduce(
+              (
+                longest,
+                line
+              ) =>
+                Math.max(
+                  longest,
+                  line.length
+                ),
+              0
+            );
+
+
+        maxLength =
+          Math.max(
+            maxLength,
+            longestLine
+          );
+
+      }
+    );
+
+
+    columnWidths.push({
+      wch: Math.min(
+        Math.max(
+          maxLength + 2,
+          12
+        ),
+        40
+      )
+    });
+
+  }
+
+
+  worksheet["!cols"] =
+    columnWidths;
+
+
+  // =========================
+  // Format Amount Columns
+  // =========================
+
+  visibleColumns.value.forEach(
+    (
+      column,
+      columnIndex
+    ) => {
+
+      if (
+        column.key !== "amount" &&
+        column.key !== "totalAmount"
+      ) {
+
+        return;
+
+      }
+
+
+      for (
+        let rowIndex = 4;
+        rowIndex < rows.length;
+        rowIndex++
+      ) {
+
+        const cellAddress =
+          XLSX.utils.encode_cell({
+            r: rowIndex,
+            c: columnIndex
+          });
+
+
+        if (
+          worksheet[cellAddress] &&
+          typeof worksheet[cellAddress].v ===
+            "number"
+        ) {
+
+          worksheet[cellAddress].z =
+            '₱#,##0.00';
+
+        }
+
+      }
+
+    }
+  );
+
+
+  // =========================
+  // Workbook
+  // =========================
+
+  const workbook =
+    XLSX.utils.book_new();
+
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    worksheet,
+    "Contribution Report"
+  );
+
+
+  // =========================
+  // Filename
+  // =========================
+
+  const filename =
+    `Contribution-Report-${startDate.value}-to-${endDate.value}.xlsx`;
+
+
+  XLSX.writeFile(
+    workbook,
+    filename
+  );
+
+
+  notyf.success(
+    "Report exported to Excel."
+  );
+
+};
+
 
 watch(
   [

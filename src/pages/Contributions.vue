@@ -5,6 +5,7 @@
     <div class="container">
 
       <!-- Header -->
+      <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
@@ -26,6 +27,15 @@
             class="btn btn-outline-primary"
           >
             Members
+          </router-link>
+
+
+          <!-- Contribution Marks -->
+          <router-link
+            to="/contributions/users"
+            class="btn btn-outline-primary"
+          >
+            Marked Contributions
           </router-link>
 
 

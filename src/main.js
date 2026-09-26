@@ -21,6 +21,8 @@ import AddContribution from "./pages/AddContribution.vue";
 import EditContribution from "./pages/EditContribution.vue";
 import Contributions from './pages/Contributions.vue';
 import ContributionsReport from './pages/ContributionsReport.vue';
+import UserContributions from './pages/UserContributions.vue';
+
 
 import AddMember from './pages/AddMember.vue';
 import Members from './pages/Members.vue';
@@ -95,6 +97,13 @@ const router = createRouter({
       path: "/members",
       name: "Members",
       component: Members
+    },
+
+
+    {
+      path: "/contributions/users",
+      name: "UserContributions",
+      component: UserContributions
     },
 
 

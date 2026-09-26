@@ -26,7 +26,7 @@ import UserContributions from './pages/UserContributions.vue';
 
 import AddMember from './pages/AddMember.vue';
 import Members from './pages/Members.vue';
-
+import EditMember from './pages/EditMember.vue';
 
 // createRouter serves as your entire map, holds the list of all pages in your project
 
@@ -90,6 +90,12 @@ const router = createRouter({
       path: "/members/add",
       name: "AddMember",
       component: AddMember
+    },
+
+    {
+      path: "/members/edit/:id",
+      name: "EditMember",
+      component: EditMember
     },
 
 

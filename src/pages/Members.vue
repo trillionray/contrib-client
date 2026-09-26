@@ -109,6 +109,10 @@
                     Account
                   </th>
 
+                  <th class="text-center">
+                    Action
+                  </th>
+
                 </tr>
 
               </thead>
@@ -212,6 +216,20 @@
                       Member Only
 
                     </span>
+
+                  </td>
+
+
+                  <!-- Action -->
+                  <td class="text-center">
+
+                    <router-link
+                      :to="`/members/edit/${user._id}`"
+                      class="btn btn-sm btn-outline-primary"
+                    >
+                      <i class="bi bi-pencil-square me-1"></i>
+                      Edit
+                    </router-link>
 
                   </td>
 

@@ -105,7 +105,7 @@
                 <tr>
 
                   <th>
-                    Date
+                    CR # / Date
                   </th>
 
                   <th>
@@ -143,12 +143,20 @@
                   <!-- Date -->
                   <td>
 
-                    <span class="fw-semibold">
+                    <small
+                      v-if="item.contributions[0]?.crNumber"
+                      class="cr-number"
+                    >
+                      CR #: {{ item.contributions[0].crNumber }}
+                    </small>
+
+                    <div class="fw-semibold">
                       {{ formatDate(item.date) }}
-                    </span>
+                    </div>
+
+                    
 
                   </td>
-
 
                   <!-- Contributor -->
                   <td>
@@ -179,6 +187,10 @@
                       <div class="fw-semibold">
                         {{ contribution.contributedTo }}
                       </div>
+
+                      
+
+
 
                       <small class="collection-type">
                         {{ contribution.collectionType }}
@@ -625,6 +637,9 @@ const groupedContributions =
 
           _id:
             item._id,
+
+          crNumber:
+              item.crNumber,
 
           contributedTo:
             item.contributedTo,

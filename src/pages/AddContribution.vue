@@ -47,6 +47,27 @@
               <!-- Contribution Form -->
               <form @submit.prevent="addContribution">
 
+              <!-- =========================
+                   CR Number
+              ========================== -->
+
+                <div class="mb-3">
+
+                  <label class="form-label fw-semibold">
+                    CR Number
+                  </label>
+
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="crNumber"
+                    placeholder="Enter CR number"
+                    autocomplete="off"
+                    required
+                  />
+
+                </div>
+
                 <!-- =========================
                      User
                 ========================== -->
@@ -288,6 +309,9 @@ const user =
 const userSearch =
   ref("");
 
+const crNumber = ref("");
+
+
 const date =
   ref("");
 
@@ -483,6 +507,27 @@ const addContribution = async () => {
 
 
     // =========================
+    // Validate CR Number
+    // =========================
+
+    const finalCrNumber =
+      crNumber.value.trim();
+
+
+    if (!finalCrNumber) {
+
+      errorMessage.value =
+        "Please enter a CR number.";
+
+      isLoading.value =
+        false;
+
+      return;
+
+    }
+
+
+    // =========================
     // Validate User
     // =========================
 
@@ -566,6 +611,9 @@ const addContribution = async () => {
       "/contributions/create",
       {
 
+        crNumber:
+             finalCrNumber,
+
         user:
           selectedUser._id,
 
@@ -602,6 +650,10 @@ const addContribution = async () => {
     // Clear Form
     // =========================
 
+    
+    crNumber.value =
+      "";
+      
     user.value =
       "";
 

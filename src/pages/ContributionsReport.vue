@@ -1,4 +1,3 @@
-
 <template>
 
   <div class="contribution-page">
@@ -93,7 +92,6 @@
                   type="date"
                   class="form-control"
                   v-model="startDate"
-                  required
                 />
 
               </div>
@@ -113,7 +111,6 @@
                   type="date"
                   class="form-control"
                   v-model="endDate"
-                  required
                 />
 
               </div>
@@ -155,6 +152,34 @@
                   ></option>
 
                 </datalist>
+
+              </div>
+
+
+              <!-- =========================
+                   CR Number
+              ========================== -->
+
+              <div class="col-md-4">
+
+                <label class="form-label fw-semibold">
+
+                  CR Number
+
+                  <small class="text-muted">
+                    (Optional)
+                  </small>
+
+                </label>
+
+
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="crNumber"
+                  placeholder="Search CR number..."
+                  autocomplete="off"
+                />
 
               </div>
 
@@ -263,6 +288,10 @@
 
                   <option value="">
                     No Grouping
+                  </option>
+
+                  <option value="crNumber">
+                    CR Number
                   </option>
 
                   <option value="user">
@@ -415,16 +444,22 @@
                 @click="exportToExcel"
                 :disabled="reportRows.length === 0"
               >
+
                 <i class="bi bi-file-earmark-excel me-1"></i>
+
                 Export to Excel
+
               </button>
+
 
               <button
                 type="button"
                 class="btn btn-sm btn-outline-secondary"
                 @click="resetColumns"
               >
+
                 Reset
+
               </button>
 
             </div>
@@ -474,7 +509,9 @@
                     v-if="isGroupingColumn(column.key)"
                     class="text-muted"
                   >
+
                     (Group)
+
                   </small>
 
 
@@ -482,7 +519,9 @@
                     v-else-if="isRequiredColumn(column.key)"
                     class="text-muted"
                   >
+
                     (Required)
+
                   </small>
 
                 </label>
@@ -596,6 +635,8 @@
                       "
                     >
 
+                      <!-- DATE -->
+
                       <template
                         v-if="column.key === 'date'"
                       >
@@ -608,6 +649,8 @@
 
                       </template>
 
+
+                      <!-- CONTRIBUTOR -->
 
                       <template
                         v-else-if="
@@ -638,6 +681,39 @@
                       </template>
 
 
+                      <!-- =========================
+                           CR NUMBER
+                      ========================== -->
+
+                      <template
+                        v-else-if="
+                          column.key === 'crNumber'
+                        "
+                      >
+
+                        <span
+                          v-if="item.crNumber"
+                          class="cr-number"
+                        >
+
+                          {{ item.crNumber }}
+
+                        </span>
+
+                        <span
+                          v-else
+                          class="text-muted"
+                        >
+
+                          —
+
+                        </span>
+
+                      </template>
+
+
+                      <!-- CONTRIBUTED TO -->
+
                       <template
                         v-else-if="
                           column.key === 'contributedTo'
@@ -652,6 +728,8 @@
 
                       </template>
 
+
+                      <!-- COLLECTION TYPE -->
 
                       <template
                         v-else-if="
@@ -668,6 +746,8 @@
                       </template>
 
 
+                      <!-- DESCRIPTION -->
+
                       <template
                         v-else-if="
                           column.key === 'description'
@@ -682,6 +762,8 @@
 
                       </template>
 
+
+                      <!-- AMOUNT -->
 
                       <template
                         v-else-if="
@@ -712,134 +794,186 @@
 
                 <template v-else>
 
-                  <tr
-                    v-for="item in groupedContributions"
-                    :key="item.key"
+                  <!-- =========================
+                       GROUP
+                  ========================== -->
+
+                  <template
+                    v-for="group in groupedContributions"
+                    :key="group.key"
                   >
 
-                    <td
-                      v-for="column in visibleColumns"
-                      :key="column.key"
-                      :class="{
-                        'text-end':
-                          column.key === 'amount' ||
-                          column.key === 'totalAmount'
-                      }"
-                      :data-order="
-                        getGroupCellOrder(
-                          item,
-                          column.key
-                        )
+                    <!-- =========================
+                         CONTRIBUTION ROWS
+                    ========================== -->
+
+                    <tr
+                      v-for="(
+                        contribution,
+                        index
+                      ) in group.contributions"
+                      :key="
+                        `${group.key}-${contribution._id || index}`
                       "
+                      class="group-contribution-row"
                     >
 
-                      <!-- =========================
-                           GROUP COLUMN
-                      ========================== -->
-
-                      <template
-                        v-if="
-                          isGroupingColumn(
+                      <td
+                        v-for="column in visibleColumns"
+                        :key="column.key"
+                        :class="{
+                          'text-end':
+                            column.key === 'amount' ||
+                            column.key === 'totalAmount'
+                        }"
+                        :data-order="
+                          getContributionCellOrder(
+                            contribution,
                             column.key
                           )
                         "
                       >
 
-                        <!-- DATE -->
+                        <!-- =========================
+                             GROUPING COLUMNS
+                        ========================== -->
 
                         <template
                           v-if="
-                            column.key === 'date'
+                            isGroupingColumn(
+                              column.key
+                            )
                           "
                         >
 
-                          <div class="fw-semibold">
+                          <!-- DATE -->
 
-                            {{ formatDate(
-                              item.date
-                            ) }}
+                          <template
+                            v-if="
+                              column.key === 'date'
+                            "
+                          >
 
-                          </div>
+                            <div class="fw-semibold">
+
+                              {{ formatDate(
+                                contribution.date
+                              ) }}
+
+                            </div>
+
+                          </template>
+
+
+                          <!-- CONTRIBUTOR -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'contributor'
+                            "
+                          >
+
+                            <div class="fw-semibold">
+
+                              {{
+                                contribution.user?.fullName ||
+                                "Unknown User"
+                              }}
+
+                            </div>
+
+
+                            <small
+                              v-if="
+                                contribution.user?.userId
+                              "
+                              class="text-muted"
+                            >
+
+                              ID:
+                              {{ contribution.user.userId }}
+
+                            </small>
+
+                          </template>
+
+
+                          <!-- CR NUMBER -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'crNumber'
+                            "
+                          >
+
+                            <span
+                              v-if="
+                                contribution.crNumber
+                              "
+                              class="cr-number"
+                            >
+
+                              {{ contribution.crNumber }}
+
+                            </span>
+
+                            <span
+                              v-else
+                              class="text-muted"
+                            >
+
+                              —
+
+                            </span>
+
+                          </template>
+
+
+                          <!-- CONTRIBUTED TO -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'contributedTo'
+                            "
+                          >
+
+                            <span class="fw-semibold">
+
+                              {{ contribution.contributedTo }}
+
+                            </span>
+
+                          </template>
+
+
+                          <!-- COLLECTION TYPE -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'collectionType'
+                            "
+                          >
+
+                            <span class="collection-type">
+
+                              {{ contribution.collectionType }}
+
+                            </span>
+
+                          </template>
+
 
                         </template>
 
 
-                        <!-- CONTRIBUTOR -->
+                        <!-- =========================
+                             NORMAL DETAIL COLUMNS
+                        ========================== -->
 
                         <template
                           v-else-if="
-                            column.key === 'contributor'
+                            column.key !== 'totalAmount'
                           "
-                        >
-
-                          <div class="fw-semibold">
-
-                            {{
-                              item.user?.fullName ||
-                              item.groupLabel ||
-                              "Unknown User"
-                            }}
-
-                          </div>
-
-
-                          <small
-                            v-if="item.user?.userId"
-                            class="text-muted"
-                          >
-
-                            ID:
-                            {{ item.user.userId }}
-
-                          </small>
-
-                        </template>
-
-
-                        <!-- OTHER GROUP -->
-
-                        <template v-else>
-
-                          <span
-                            :class="{
-                              'collection-type':
-                                column.key ===
-                                'collectionType',
-                              'fw-semibold':
-                                column.key !==
-                                'collectionType'
-                            }"
-                          >
-
-                            {{ item.groupLabel }}
-
-                          </span>
-
-                        </template>
-
-                      </template>
-
-
-                      <!-- =========================
-                           NORMAL GROUP DETAILS
-                      ========================== -->
-
-                      <template
-                        v-else-if="
-                          column.key !== 'totalAmount'
-                        "
-                      >
-
-                        <div
-                          v-for="(
-                            contribution,
-                            index
-                          ) in item.contributions"
-                          :key="
-                            contribution._id ||
-                            index
-                          "
-                          class="contribution-detail"
                         >
 
                           <!-- DATE -->
@@ -892,12 +1026,42 @@
                           </template>
 
 
+                          <!-- CR NUMBER -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'crNumber'
+                            "
+                          >
+
+                            <span
+                              v-if="
+                                contribution.crNumber
+                              "
+                              class="cr-number"
+                            >
+
+                              {{ contribution.crNumber }}
+
+                            </span>
+
+                            <span
+                              v-else
+                              class="text-muted"
+                            >
+
+                              —
+
+                            </span>
+
+                          </template>
+
+
                           <!-- CONTRIBUTED TO -->
 
                           <template
                             v-else-if="
-                              column.key ===
-                              'contributedTo'
+                              column.key === 'contributedTo'
                             "
                           >
 
@@ -916,8 +1080,7 @@
 
                           <template
                             v-else-if="
-                              column.key ===
-                              'collectionType'
+                              column.key === 'collectionType'
                             "
                           >
 
@@ -936,8 +1099,7 @@
 
                           <template
                             v-else-if="
-                              column.key ===
-                              'description'
+                              column.key === 'description'
                             "
                           >
 
@@ -972,38 +1134,87 @@
 
                           </template>
 
-                        </div>
-
-                      </template>
+                        </template>
 
 
-                      <!-- =========================
-                           TOTAL AMOUNT
-                      ========================== -->
+                        <!-- =========================
+                             GROUP TOTAL
+                        ========================== -->
 
-                      <template
-                        v-else-if="
-                          column.key ===
-                          'totalAmount'
-                        "
+                        <template
+                          v-else-if="
+                            column.key === 'totalAmount'
+                          "
+                        >
+
+                          <span class="text-muted">
+                            —
+                          </span>
+
+                        </template>
+
+                      </td>
+
+                    </tr>
+
+
+                    <!-- =========================
+                         GROUP TOTAL ROW
+                    ========================== -->
+
+                    <tr
+                      class="group-total-row"
+                    >
+
+                      <td
+                        v-for="column in visibleColumns"
+                        :key="column.key"
+                        :class="{
+                          'text-end':
+                            column.key === 'amount' ||
+                            column.key === 'totalAmount'
+                        }"
                       >
 
-                        <span class="total-amount">
+                        <template
+                          v-if="
+                            column.key === 'totalAmount'
+                          "
+                        >
 
-                          ₱{{ formatAmount(
-                            item.totalAmount
-                          ) }}
+                          <span class="total-amount">
 
-                        </span>
+                            ₱{{ formatAmount(
+                              group.totalAmount
+                            ) }}
 
-                      </template>
+                          </span>
 
-                    </td>
+                        </template>
 
-                  </tr>
+
+                        <template
+                          v-else-if="
+                            column.key ===
+                            visibleColumns[
+                              visibleColumns.length - 2
+                            ]?.key
+                          "
+                        >
+
+                          <strong>
+                            Group Total
+                          </strong>
+
+                        </template>
+
+                      </td>
+
+                    </tr>
+
+                  </template>
 
                 </template>
-
 
                 <!-- =========================
                      Empty
@@ -1198,14 +1409,8 @@ let dataTable =
 // IMPORTANT TABLE STATE
 // =========================
 
-/*
-  This prevents Vue and DataTables from trying to
-  modify the same table at the same time.
-*/
-
 const tableReady =
   ref(false);
-
 
 const tableRenderKey =
   ref(0);
@@ -1231,6 +1436,9 @@ const endDate =
   ref("");
 
 const name =
+  ref("");
+
+const crNumber =
   ref("");
 
 const collectionType =
@@ -1294,6 +1502,11 @@ const reportGenerated =
 // =========================
 
 const availableColumns = [
+  {
+    key: "crNumber",
+    label: "CR Number",
+    default: true
+  },
 
   {
     key: "date",
@@ -1306,6 +1519,8 @@ const availableColumns = [
     label: "Contributor",
     default: true
   },
+
+  
 
   {
     key: "contributedTo",
@@ -1377,6 +1592,17 @@ const selectableColumns =
 
 const groupingColumns =
   computed(() => {
+
+    if (
+          groupBy.value === "crNumber"
+        ) {
+
+          return [
+            "crNumber"
+          ];
+
+        }
+
 
     if (
       groupBy.value === "user"
@@ -1462,7 +1688,6 @@ const isRequiredColumn = (
     return true;
 
   }
-
 
   return false;
 
@@ -1555,30 +1780,12 @@ const toggleColumn = (
   }
 
 
-  /*
-    IMPORTANT:
-
-    Do not simply append the column.
-
-    Rebuild the selected list using the original
-    availableColumns order.
-
-    Therefore:
-
-    Date
-    Contributor
-    Contributed To
-    Collection Type
-    Description
-    Amount
-
-    Date will return to its original position
-    after being checked again.
-  */
-
   const newSelectedColumns = [
+
     ...selectedColumns.value,
+
     columnKey
+
   ];
 
 
@@ -1638,12 +1845,16 @@ const visibleColumns =
 
 
       return [
+
         ...groupColumns,
+
         ...otherColumns,
+
         {
           key: "totalAmount",
           label: "Total Amount"
         }
+
       ];
 
     }
@@ -1925,13 +2136,19 @@ const initializeDataTable =
     destroyDataTable();
 
 
+    const isGrouped =
+      !!groupBy.value;
+
+
     dataTable =
       new DataTable(
         reportTable.value,
         {
 
           pageLength:
-            10,
+            isGrouped
+              ? -1
+              : 10,
 
           lengthMenu: [
             [10, 25, 50, 100, -1],
@@ -1941,20 +2158,31 @@ const initializeDataTable =
           searching:
             true,
 
+          /*
+            Grouped reports contain multiple rows
+            belonging to the same group.
+
+            Disable ordering and pagination so
+            DataTables does not separate the
+            contribution rows from their group.
+          */
+
           ordering:
-            true,
+            !isGrouped,
 
           info:
             true,
 
           paging:
-            true,
+            !isGrouped,
 
           autoWidth:
             false,
 
           order:
-            getDataTableOrder(),
+            isGrouped
+              ? []
+              : getDataTableOrder(),
 
           language: {
 
@@ -2002,7 +2230,6 @@ const initializeDataTable =
 
   };
 
-
 // =========================
 // Rebuild DataTable
 // =========================
@@ -2010,56 +2237,25 @@ const initializeDataTable =
 const rebuildDataTable =
   async () => {
 
-    /*
-      1. Remove the table from Vue's DOM.
-    */
-
     tableReady.value =
       false;
 
 
-    /*
-      2. Destroy DataTables while
-         the old table still exists.
-    */
-
     destroyDataTable();
 
-
-    /*
-      3. Let Vue remove the old table.
-    */
 
     await nextTick();
 
 
-    /*
-      4. Force a completely new table
-         instance.
-    */
-
     tableRenderKey.value++;
 
-
-    /*
-      5. Put a fresh table into the DOM.
-    */
 
     tableReady.value =
       true;
 
 
-    /*
-      6. Let Vue render the new table.
-    */
-
     await nextTick();
 
-
-    /*
-      7. Initialize DataTables on
-         the new table.
-    */
 
     await initializeDataTable();
 
@@ -2077,21 +2273,23 @@ const createReport =
       "";
 
 
+    // if (
+    //   !startDate.value ||
+    //   !endDate.value
+    // ) {
+
+    //   notyf.error(
+    //     "Please select a start date and end date."
+    //   );
+
+    //   return;
+
+    // }
+
+
     if (
-      !startDate.value ||
-      !endDate.value
-    ) {
-
-      notyf.error(
-        "Please select a start date and end date."
-      );
-
-      return;
-
-    }
-
-
-    if (
+      startDate.value &&
+      endDate.value &&
       startDate.value >
       endDate.value
     ) {
@@ -2166,13 +2364,6 @@ const createReport =
       true;
 
 
-    /*
-      Do NOT destroy DataTables here.
-
-      We only rebuild it after the API request
-      succeeds.
-    */
-
     try {
 
       const response =
@@ -2188,6 +2379,10 @@ const createReport =
 
             name:
               contributorName ||
+              undefined,
+
+            crNumber:
+              crNumber.value.trim() ||
               undefined,
 
             collectionType:
@@ -2206,16 +2401,6 @@ const createReport =
         );
 
 
-      /*
-        Axios already parses JSON.
-
-        Therefore DO NOT do:
-
-        response.json()
-
-        here.
-      */
-
       if (
         !response ||
         !response.data
@@ -2232,11 +2417,6 @@ const createReport =
         response.data;
 
 
-      /*
-        Set the default columns for
-        the newly generated report.
-      */
-
       rebuildingReport.value =
         true;
 
@@ -2247,10 +2427,6 @@ const createReport =
       reportGenerated.value =
         true;
 
-
-      /*
-        Fresh table.
-      */
 
       await rebuildDataTable();
 
@@ -2295,11 +2471,6 @@ const createReport =
 
       }
 
-
-      /*
-        Axios errors can contain the backend's
-        actual message here.
-      */
 
       const serverMessage =
         error.response?.data?.message;
@@ -2431,6 +2602,28 @@ const groupedContributions =
 
         let date =
           null;
+
+          // =========================
+          // CR NUMBER
+          // =========================
+
+          if (
+            groupBy.value ===
+            "crNumber"
+          ) {
+
+            groupLabel =
+              contribution.crNumber ||
+              "Unknown";
+
+
+            key =
+              groupLabel
+                .trim()
+                .toLowerCase();
+
+          }
+
 
 
         // =========================
@@ -2780,6 +2973,113 @@ const getCellOrder = (
   }
 
 
+  // CR NUMBER
+
+  if (
+    columnKey === "crNumber"
+  ) {
+
+    return (
+      item.crNumber ||
+      ""
+    );
+
+  }
+
+
+  if (
+    columnKey === "contributor"
+  ) {
+
+    return (
+      item.user?.fullName ||
+      ""
+    );
+
+  }
+
+
+  if (
+    columnKey === "contributedTo"
+  ) {
+
+    return (
+      item.contributedTo ||
+      ""
+    );
+
+  }
+
+
+  if (
+    columnKey === "collectionType"
+  ) {
+
+    return (
+      item.collectionType ||
+      ""
+    );
+
+  }
+
+
+  if (
+    columnKey === "description"
+  ) {
+
+    return (
+      item.description ||
+      ""
+    );
+
+  }
+
+
+  return "";
+
+};
+
+// =========================
+// Contribution Cell Order
+// =========================
+
+const getContributionCellOrder = (
+  item,
+  columnKey
+) => {
+
+  if (
+    columnKey === "date"
+  ) {
+
+    return item.date || "";
+
+  }
+
+
+  if (
+    columnKey === "amount"
+  ) {
+
+    return Number(
+      item.amount
+    ) || 0;
+
+  }
+
+
+  if (
+    columnKey === "crNumber"
+  ) {
+
+    return (
+      item.crNumber ||
+      ""
+    );
+
+  }
+
+
   if (
     columnKey === "contributor"
   ) {
@@ -2886,6 +3186,20 @@ const getGroupCellOrder = (
   }
 
 
+  // CR NUMBER
+
+  if (
+    columnKey === "crNumber"
+  ) {
+
+    return (
+      item.contributions?.[0]?.crNumber ||
+      ""
+    );
+
+  }
+
+
   return (
     item.groupLabel ||
     ""
@@ -2973,11 +3287,6 @@ const formatAmount = (
 
 
 // =========================
-// Watch Table Configuration
-// =========================
-
-
-// =========================
 // Export Report to Excel
 // =========================
 
@@ -3025,25 +3334,55 @@ const exportToExcel = () => {
 
   const filters = [];
 
-  if (name.value.trim()) {
+
+  if (
+    name.value.trim()
+  ) {
+
     filters.push(
       `Contributor: ${name.value.trim()}`
     );
+
   }
 
-  if (contributedTo.value.trim()) {
+
+  if (
+    crNumber.value.trim()
+  ) {
+
+    filters.push(
+      `CR Number: ${crNumber.value.trim()}`
+    );
+
+  }
+
+
+  if (
+    contributedTo.value.trim()
+  ) {
+
     filters.push(
       `Contributed To: ${contributedTo.value.trim()}`
     );
+
   }
 
-  if (collectionType.value.trim()) {
+
+  if (
+    collectionType.value.trim()
+  ) {
+
     filters.push(
       `Collection Type: ${collectionType.value.trim()}`
     );
+
   }
 
-  if (groupBy.value) {
+
+  if (
+    groupBy.value
+  ) {
+
     filters.push(
       `Group By: ${
         groupBy.value === "date-user"
@@ -3051,10 +3390,13 @@ const exportToExcel = () => {
           : groupBy.value
       }`
     );
+
   }
 
 
-  if (filters.length > 0) {
+  if (
+    filters.length > 0
+  ) {
 
     rows.push([
       "Filters",
@@ -3077,7 +3419,10 @@ const exportToExcel = () => {
         column.label
     );
 
-  rows.push(headers);
+
+  rows.push(
+    headers
+  );
 
 
   // =========================
@@ -3112,6 +3457,21 @@ const exportToExcel = () => {
         item.user?.fullName ||
         item.groupLabel ||
         "Unknown User"
+      );
+
+    }
+
+
+    // CR NUMBER
+
+    if (
+      columnKey === "crNumber"
+    ) {
+
+      return (
+        item.crNumber ||
+        item.groupLabel ||
+        ""
       );
 
     }
@@ -3252,7 +3612,9 @@ const exportToExcel = () => {
       );
 
 
-      rows.push(row);
+      rows.push(
+        row
+      );
 
     }
   );
@@ -3281,6 +3643,7 @@ const exportToExcel = () => {
       visibleColumns.value.length - 2
     ] =
       "GRAND TOTAL";
+
 
     grandTotalRow[
       visibleColumns.value.length - 1
@@ -3313,6 +3676,7 @@ const exportToExcel = () => {
 
   const columnCount =
     visibleColumns.value.length;
+
 
   const columnWidths = [];
 
@@ -3421,7 +3785,7 @@ const exportToExcel = () => {
         ) {
 
           worksheet[cellAddress].z =
-            '₱#,##0.00';
+            "₱#,##0.00";
 
         }
 
@@ -3467,6 +3831,10 @@ const exportToExcel = () => {
 };
 
 
+// =========================
+// Watch Table Configuration
+// =========================
+
 watch(
   [
     selectedColumns,
@@ -3482,14 +3850,6 @@ watch(
 
     }
 
-
-    /*
-      createReport() already rebuilds the table
-      after generating a new report.
-
-      This prevents the resetColumns() operation
-      from causing a second rebuild.
-    */
 
     if (
       rebuildingReport.value
@@ -3547,6 +3907,28 @@ onBeforeUnmount(() => {
 
 
 <style scoped>
+
+
+/* =========================
+   CR Number
+========================= */
+
+.cr-number {
+
+  display:
+    inline-block;
+
+  color:
+    #6b7c8f;
+
+  font-size:
+    13px;
+
+  font-weight:
+    600;
+
+}
+
 
 /* =========================
    Contribution Page
@@ -4091,6 +4473,16 @@ onBeforeUnmount(() => {
   border-color:
     #edf1f4;
 
+  vertical-align:
+    top;
+
+}
+
+.table tbody td.text-end {
+
+  text-align:
+    right !important;
+
 }
 
 
@@ -4125,25 +4517,21 @@ onBeforeUnmount(() => {
 
 
 /* =========================
-   Contribution Details
+   Grouped Contribution Rows
 ========================= */
 
-.contribution-detail {
+.group-contribution-row td {
 
   padding:
-    5px 0;
+    14px 18px;
+
+  vertical-align:
+    middle;
 
 }
 
 
-.contribution-detail
-+ .contribution-detail {
-
-  margin-top:
-    6px;
-
-  padding-top:
-    8px;
+.group-contribution-row + .group-contribution-row td {
 
   border-top:
     1px solid #edf1f4;
@@ -4151,6 +4539,36 @@ onBeforeUnmount(() => {
 }
 
 
+/* =========================
+   Group Total Row
+========================= */
+
+.group-total-row td {
+
+  padding:
+    10px 18px;
+
+  background:
+    #f5f7f9;
+
+  border-top:
+    1px solid #dce3e9;
+
+  border-bottom:
+    2px solid #dce3e9;
+
+  vertical-align:
+    middle;
+
+}
+
+
+.group-total-row td:last-child {
+
+  font-weight:
+    700;
+
+}
 /* =========================
    Collection Type
 ========================= */

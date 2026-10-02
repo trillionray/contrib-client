@@ -885,15 +885,26 @@ onMounted(() => {
 
 }
 
-
 /* =========================
    Contribution Details
 ========================= */
 
 .contribution-detail {
 
+  height:
+    85px;
+
   padding:
     5px 0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  justify-content:
+    center;
 
 }
 

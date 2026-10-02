@@ -41,6 +41,7 @@
           </router-link>
 
         </div>
+
       </div>
 
 
@@ -71,15 +72,11 @@
           </h5>
 
 
-          <form
-            @submit.prevent="createReport"
-          >
+          <form @submit.prevent="createReport">
 
             <div class="row g-3">
 
-              <!-- =========================
-                   Start Date
-              ========================== -->
+              <!-- Start Date -->
 
               <div class="col-md-6">
 
@@ -96,9 +93,7 @@
               </div>
 
 
-              <!-- =========================
-                   End Date
-              ========================== -->
+              <!-- End Date -->
 
               <div class="col-md-6">
 
@@ -115,9 +110,7 @@
               </div>
 
 
-              <!-- =========================
-                   Contributor
-              ========================== -->
+              <!-- Contributor -->
 
               <div class="col-md-4">
 
@@ -155,9 +148,7 @@
               </div>
 
 
-              <!-- =========================
-                   CR Number
-              ========================== -->
+              <!-- CR Number -->
 
               <div class="col-md-4">
 
@@ -183,9 +174,7 @@
               </div>
 
 
-              <!-- =========================
-                   Contributed To
-              ========================== -->
+              <!-- Contributed To -->
 
               <div class="col-md-4">
 
@@ -223,9 +212,7 @@
               </div>
 
 
-              <!-- =========================
-                   Collection Type
-              ========================== -->
+              <!-- Collection Type -->
 
               <div class="col-md-4">
 
@@ -263,9 +250,7 @@
               </div>
 
 
-              <!-- =========================
-                   Group By
-              ========================== -->
+              <!-- Group By -->
 
               <div class="col-md-4">
 
@@ -316,9 +301,7 @@
             </div>
 
 
-            <!-- =========================
-                 Generate Button
-            ========================== -->
+            <!-- Generate -->
 
             <div class="d-flex justify-content-end mt-4">
 
@@ -538,6 +521,8 @@
 
             Grouping columns are included automatically.
             Amount is required when no grouping is selected.
+            When grouped, Total Cash, Total Online, and Total Amount
+            are included automatically.
 
           </div>
 
@@ -557,12 +542,6 @@
 
         <div class="card-body">
 
-          <!--
-            IMPORTANT:
-            tableReady temporarily removes the table from
-            the DOM while DataTables is being rebuilt.
-          -->
-
           <div
             v-if="tableReady"
             :key="tableRenderKey"
@@ -576,7 +555,7 @@
             >
 
               <!-- =========================
-                   Table Header
+                   Header
               ========================== -->
 
               <thead>
@@ -589,6 +568,8 @@
                     :class="{
                       'text-end':
                         column.key === 'amount' ||
+                        column.key === 'totalCash' ||
+                        column.key === 'totalOnline' ||
                         column.key === 'totalAmount'
                     }"
                   >
@@ -603,7 +584,7 @@
 
 
               <!-- =========================
-                   Table Body
+                   Body
               ========================== -->
 
               <tbody>
@@ -634,24 +615,22 @@
                       "
                     >
 
-                      <!-- DATE -->
-
                       <template
                         v-if="column.key === 'date'"
                       >
 
                         <span class="fw-semibold">
-
                           {{ formatDate(item.date) }}
-
                         </span>
 
                       </template>
 
 
-                      <!-- CONTRIBUTOR -->
-
-                      <template v-else-if="column.key === 'contributor'">
+                      <template
+                        v-else-if="
+                          column.key === 'contributor'
+                        "
+                      >
 
                         <div class="fw-semibold">
 
@@ -672,10 +651,9 @@
                           {{ item.user.userId }}
 
                         </small>
+
                       </template>
 
-
-                      <!-- PARTICIPANTS -->
 
                       <template
                         v-else-if="
@@ -685,18 +663,16 @@
 
                         <span class="fw-semibold">
 
-                          {{ Number(
-                            item.numberOfParticipants
-                          ) || 1 }}
+                          {{
+                            Number(
+                              item.numberOfParticipants
+                            ) || 1
+                          }}
 
                         </span>
 
                       </template>
 
-
-                      <!-- =========================
-                           CR NUMBER
-                      ========================== -->
 
                       <template
                         v-else-if="
@@ -725,8 +701,6 @@
                       </template>
 
 
-                      <!-- CONTRIBUTED TO -->
-
                       <template
                         v-else-if="
                           column.key === 'contributedTo'
@@ -734,15 +708,11 @@
                       >
 
                         <span class="fw-semibold">
-
                           {{ item.contributedTo }}
-
                         </span>
 
                       </template>
 
-
-                      <!-- COLLECTION TYPE -->
 
                       <template
                         v-else-if="
@@ -751,15 +721,11 @@
                       >
 
                         <span class="collection-type">
-
                           {{ item.collectionType }}
-
                         </span>
 
                       </template>
 
-
-                      <!-- DESCRIPTION -->
 
                       <template
                         v-else-if="
@@ -768,15 +734,11 @@
                       >
 
                         <div class="contribution-description">
-
                           {{ item.description }}
-
                         </div>
 
                       </template>
 
-
-                      <!-- AMOUNT -->
 
                       <template
                         v-else-if="
@@ -786,9 +748,7 @@
 
                         <span class="amount">
 
-                          ₱{{ formatAmount(
-                            item.amount
-                          ) }}
+                          ₱{{ formatAmount(item.amount) }}
 
                         </span>
 
@@ -797,27 +757,22 @@
                     </td>
 
                   </tr>
+
                 </template>
 
 
                 <!-- =========================
-                     GROUPED REPORTS
+                     GROUPED REPORT
                 ========================== -->
 
                 <template v-else>
-
-                  <!-- =========================
-                       GROUP
-                  ========================== -->
 
                   <template
                     v-for="group in groupedContributions"
                     :key="group.key"
                   >
 
-                    <!-- =========================
-                         CONTRIBUTION ROWS
-                    ========================== -->
+                    <!-- Contribution rows -->
 
                     <tr
                       v-for="(
@@ -836,6 +791,8 @@
                         :class="{
                           'text-end':
                             column.key === 'amount' ||
+                            column.key === 'totalCash' ||
+                            column.key === 'totalOnline' ||
                             column.key === 'totalAmount'
                         }"
                         :data-order="
@@ -846,312 +803,182 @@
                         "
                       >
 
-                        <!-- =========================
-                             GROUPING COLUMNS
-                        ========================== -->
+                        <!-- Date -->
 
                         <template
-                          v-if="
-                            isGroupingColumn(
-                              column.key
-                            )
-                          "
+                          v-if="column.key === 'date'"
                         >
 
-                          <!-- DATE -->
-
-                          <template
-                            v-if="
-                              column.key === 'date'
-                            "
-                          >
-
-                            <div class="fw-semibold">
-
-                              {{ formatDate(
-                                contribution.date
-                              ) }}
-
-                            </div>
-
-                          </template>
-
-
-                          <!-- CONTRIBUTOR -->
-
-                          <template
-                            v-else-if="
-                              column.key === 'contributor'
-                            "
-                          >
-
-                            <div class="fw-semibold">
-
-                              {{
-                                contribution.user?.fullName ||
-                                "Unknown User"
-                              }}
-
-                            </div>
-
-
-                            <small
-                              v-if="
-                                contribution.user?.userId
-                              "
-                              class="text-muted"
-                            >
-
-                              ID:
-                              {{ contribution.user.userId }}
-
-                            </small>
-
-                          </template>
-
-
-                          <!-- CR NUMBER -->
-
-                          <template
-                            v-else-if="
-                              column.key === 'crNumber'
-                            "
-                          >
-
-                            <span
-                              v-if="
-                                contribution.crNumber
-                              "
-                              class="cr-number"
-                            >
-
-                              {{ contribution.crNumber }}
-
-                            </span>
-
-                            <span
-                              v-else
-                              class="text-muted"
-                            >
-
-                              —
-
-                            </span>
-
-                          </template>
-
-
-                          <!-- CONTRIBUTED TO -->
-
-                          <template
-                            v-else-if="
-                              column.key === 'contributedTo'
-                            "
-                          >
-
-                            <span class="fw-semibold">
-
-                              {{ contribution.contributedTo }}
-
-                            </span>
-
-                          </template>
-
-
-                          <!-- COLLECTION TYPE -->
-
-                          <template
-                            v-else-if="
-                              column.key === 'collectionType'
-                            "
-                          >
-
-                            <span class="collection-type">
-
-                              {{ contribution.collectionType }}
-
-                            </span>
-
-                          </template>
-
+                          <div class="fw-semibold">
+                            {{ formatDate(contribution.date) }}
+                          </div>
 
                         </template>
 
 
-                        <!-- =========================
-                             NORMAL DETAIL COLUMNS
-                        ========================== -->
+                        <!-- Contributor -->
 
                         <template
                           v-else-if="
-                            column.key !== 'totalAmount'
+                            column.key === 'contributor'
                           "
                         >
 
-                          <!-- DATE -->
+                          <div class="fw-semibold">
 
-                          <template
+                            {{
+                              contribution.user?.fullName ||
+                              "Unknown User"
+                            }}
+
+                          </div>
+
+
+                          <small
                             v-if="
-                              column.key === 'date'
+                              contribution.user?.userId
                             "
+                            class="text-muted"
                           >
 
-                            {{ formatDate(
-                              contribution.date
+                            ID:
+                            {{ contribution.user.userId }}
+
+                          </small>
+
+                        </template>
+
+
+                        <!-- Participants -->
+
+                        <template
+                          v-else-if="
+                            column.key ===
+                            'numberOfParticipants'
+                          "
+                        >
+
+                          <span class="fw-semibold">
+
+                            {{
+                              Number(
+                                contribution.numberOfParticipants
+                              ) || 1
+                            }}
+
+                          </span>
+
+                        </template>
+
+
+                        <!-- CR -->
+
+                        <template
+                          v-else-if="
+                            column.key === 'crNumber'
+                          "
+                        >
+
+                          <span
+                            v-if="contribution.crNumber"
+                            class="cr-number"
+                          >
+
+                            {{ contribution.crNumber }}
+
+                          </span>
+
+                          <span
+                            v-else
+                            class="text-muted"
+                          >
+
+                            —
+
+                          </span>
+
+                        </template>
+
+
+                        <!-- Contributed To -->
+
+                        <template
+                          v-else-if="
+                            column.key === 'contributedTo'
+                          "
+                        >
+
+                          <span class="fw-semibold">
+
+                            {{
+                              contribution.contributedTo
+                            }}
+
+                          </span>
+
+                        </template>
+
+
+                        <!-- Collection Type -->
+
+                        <template
+                          v-else-if="
+                            column.key === 'collectionType'
+                          "
+                        >
+
+                          <span class="collection-type">
+
+                            {{
+                              contribution.collectionType
+                            }}
+
+                          </span>
+
+                        </template>
+
+
+                        <!-- Description -->
+
+                        <template
+                          v-else-if="
+                            column.key === 'description'
+                          "
+                        >
+
+                          <div class="contribution-description">
+
+                            {{
+                              contribution.description
+                            }}
+
+                          </div>
+
+                        </template>
+
+
+                        <!-- Amount -->
+
+                        <template
+                          v-else-if="
+                            column.key === 'amount'
+                          "
+                        >
+
+                          <span class="amount">
+
+                            ₱{{ formatAmount(
+                              contribution.amount
                             ) }}
 
-                          </template>
-
-
-                          <!-- CONTRIBUTOR -->
-                          <template
-                            v-else-if="
-                              column.key === 'contributor'
-                            "
-                          >
-                            <div class="fw-semibold">
-                              {{
-                                contribution.user?.fullName ||
-                                "Unknown User"
-                              }}
-                            </div>
-
-
-                            <small
-                              v-if="
-                                contribution.user?.userId
-                              "
-                              class="text-muted"
-                            >
-
-                              ID:
-                              {{
-                                contribution.user.userId
-                              }}
-
-                            </small>
-                          </template>
-
-
-                          <!-- CR NUMBER -->
-                          <template
-                            v-else-if="
-                              column.key === 'crNumber'
-                            "
-                          >
-
-                            <span
-                              v-if="
-                                contribution.crNumber
-                              "
-                              class="cr-number"
-                            >
-
-                              {{ contribution.crNumber }}
-
-                            </span>
-
-                            <span
-                              v-else
-                              class="text-muted"
-                            >
-
-                              —
-
-                            </span>
-
-                          </template>
-
-
-                          <!-- CONTRIBUTED TO -->
-
-                          <template
-                            v-else-if="
-                              column.key === 'contributedTo'
-                            "
-                          >
-
-                            <span class="fw-semibold">
-
-                              {{
-                                contribution.contributedTo
-                              }}
-
-                            </span>
-
-                          </template>
-
-
-                          <!-- COLLECTION TYPE -->
-
-                          <template
-                            v-else-if="
-                              column.key === 'collectionType'
-                            "
-                          >
-
-                            <span class="collection-type">
-
-                              {{
-                                contribution.collectionType
-                              }}
-
-                            </span>
-
-                          </template>
-
-
-                          <!-- DESCRIPTION -->
-
-                          <template
-                            v-else-if="
-                              column.key === 'description'
-                            "
-                          >
-
-                            <div
-                              class="contribution-description"
-                            >
-
-                              {{
-                                contribution.description
-                              }}
-
-                            </div>
-
-                          </template>
-
-
-                          <!-- AMOUNT -->
-
-                          <template
-                            v-else-if="
-                              column.key === 'amount'
-                            "
-                          >
-
-                            <span class="amount">
-
-                              ₱{{ formatAmount(
-                                contribution.amount
-                              ) }}
-
-                            </span>
-
-                          </template>
+                          </span>
 
                         </template>
 
 
-                        <!-- =========================
-                             GROUP TOTAL
-                        ========================== -->
+                        <!-- Summary columns -->
 
-                        <template
-                          v-else-if="
-                            column.key === 'totalAmount'
-                          "
-                        >
+                        <template v-else>
 
                           <span class="text-muted">
                             —
@@ -1165,30 +992,82 @@
 
 
                     <!-- =========================
-                         GROUP TOTAL ROW
+                         Group Total
                     ========================== -->
 
-                    <tr
-                      class="group-total-row"
-                    >
+                    <tr class="group-total-row">
 
                       <td
-                        v-for="column in visibleColumns"
+                        v-for="(column, index) in visibleColumns"
                         :key="column.key"
                         :class="{
                           'text-end':
-                            column.key === 'amount' ||
+                            column.key === 'totalCash' ||
+                            column.key === 'totalOnline' ||
                             column.key === 'totalAmount'
                         }"
                       >
 
+                        <!-- Label -->
+
+                        <template v-if="index === 0">
+
+                          <strong>
+                            Group Total
+                          </strong>
+
+                        </template>
+
+
+                        <!-- Cash -->
+
                         <template
-                          v-if="
+                          v-else-if="
+                            column.key === 'totalCash'
+                          "
+                        >
+
+                          <span class="group-total-value">
+
+                            ₱{{ formatAmount(
+                              group.cashTotal
+                            ) }}
+
+                          </span>
+
+                        </template>
+
+
+                        <!-- Online -->
+
+                        <template
+                          v-else-if="
+                            column.key === 'totalOnline'
+                          "
+                        >
+
+                          <span class="group-total-value">
+
+                            ₱{{ formatAmount(
+                              group.onlineTotal
+                            ) }}
+
+                          </span>
+
+                        </template>
+
+
+                        <!-- Total -->
+
+                        <template
+                          v-else-if="
                             column.key === 'totalAmount'
                           "
                         >
 
-                          <span class="total-amount">
+                          <span
+                            class="group-total-value grand-group-total"
+                          >
 
                             ₱{{ formatAmount(
                               group.totalAmount
@@ -1199,18 +1078,11 @@
                         </template>
 
 
-                        <template
-                          v-else-if="
-                            column.key ===
-                            visibleColumns[
-                              visibleColumns.length - 2
-                            ]?.key
-                          "
-                        >
+                        <template v-else>
 
-                          <strong>
-                            Group Total
-                          </strong>
+                          <span>
+                            &nbsp;
+                          </span>
 
                         </template>
 
@@ -1222,98 +1094,180 @@
 
                 </template>
 
-                <!-- =========================
-                     Empty
-                ========================== -->
-
-                <tr
-                  v-if="reportRows.length === 0"
-                  class="empty-row"
-                >
-
-                  <td
-                    :colspan="tableColumnCount"
-                    class="text-center py-5 text-muted"
-                  >
-
-                    No contributions found
-                    for the selected filters.
-
-                  </td>
-
-                </tr>
-
               </tbody>
 
+
+              <!-- =========================
+                   Footer
+              ========================== -->
 
               <tfoot
                 v-if="reportRows.length > 0"
               >
 
-                <!-- =========================
-                     Grand Total
-                ========================== -->
+                <!-- GROUPED FOOTER -->
 
-                <tr>
+                <template v-if="groupBy">
 
-                  <th
-                    :colspan="
-                      Math.max(
-                        visibleColumns.length - 1,
-                        1
-                      )
-                    "
-                    class="text-end"
-                  >
+                  <tr>
 
-                    Grand Total
+                    <th
+                      v-for="(column, index) in visibleColumns"
+                      :key="column.key"
+                      :class="{
+                        'text-end':
+                          column.key === 'totalCash' ||
+                          column.key === 'totalOnline' ||
+                          column.key === 'totalAmount'
+                      }"
+                    >
 
-                  </th>
+                      <template v-if="index === 0">
 
+                        Grand Total
 
-                  <th
-                    class="text-end grand-total"
-                  >
-
-                    ₱{{ formatAmount(
-                      reportTotal
-                    ) }}
-
-                  </th>
-
-                </tr>
+                      </template>
 
 
-                <!-- =========================
-                     Total Participants
-                ========================== -->
+                      <template
+                        v-else-if="
+                          column.key === 'totalCash'
+                        "
+                      >
 
-                <tr>
+                        ₱{{ formatAmount(
+                          reportCashTotal
+                        ) }}
 
-                  <th
-                    :colspan="
-                      Math.max(
-                        visibleColumns.length - 1,
-                        1
-                      )
-                    "
-                    class="text-end"
-                  >
-
-                    Total Participants
-
-                  </th>
+                      </template>
 
 
-                  <th
-                    class="text-end participant-total"
-                  >
+                      <template
+                        v-else-if="
+                          column.key === 'totalOnline'
+                        "
+                      >
 
-                    {{ reportTotalParticipants }}
+                        ₱{{ formatAmount(
+                          reportOnlineTotal
+                        ) }}
 
-                  </th>
+                      </template>
 
-                </tr>
+
+                      <template
+                        v-else-if="
+                          column.key === 'totalAmount'
+                        "
+                      >
+
+                        ₱{{ formatAmount(
+                          reportTotal
+                        ) }}
+
+                      </template>
+
+                    </th>
+
+                  </tr>
+
+
+                  <tr>
+
+                    <th
+                      v-for="(column, index) in visibleColumns"
+                      :key="column.key"
+                      :class="{
+                        'text-end':
+                          column.key === 'numberOfParticipants'
+                      }"
+                    >
+
+                      <template v-if="index === 0">
+
+                        Total Participants
+
+                      </template>
+
+
+                      <template
+                        v-else-if="
+                          column.key ===
+                          'numberOfParticipants'
+                        "
+                      >
+
+                        {{ reportTotalParticipants }}
+
+                      </template>
+
+                    </th>
+
+                  </tr>
+
+                </template>
+
+
+                <!-- UNGROUPED FOOTER -->
+
+                <template v-else>
+
+                  <tr>
+
+                    <th
+                      :colspan="
+                        Math.max(
+                          visibleColumns.length - 1,
+                          1
+                        )
+                      "
+                      class="text-end"
+                    >
+
+                      Grand Total
+
+                    </th>
+
+
+                    <th class="text-end grand-total">
+
+                      ₱{{ formatAmount(
+                        reportTotal
+                      ) }}
+
+                    </th>
+
+                  </tr>
+
+
+                  <tr>
+
+                    <th
+                      :colspan="
+                        Math.max(
+                          visibleColumns.length - 1,
+                          1
+                        )
+                      "
+                      class="text-end"
+                    >
+
+                      Total Participants
+
+                    </th>
+
+
+                    <th
+                      class="text-end participant-total"
+                    >
+
+                      {{ reportTotalParticipants }}
+
+                    </th>
+
+                  </tr>
+
+                </template>
 
               </tfoot>
 
@@ -1322,9 +1276,7 @@
           </div>
 
 
-          <!-- =========================
-               Table Rebuilding
-          ========================== -->
+          <!-- Rebuilding -->
 
           <div
             v-else
@@ -1421,7 +1373,7 @@ const notyf =
 
 
 // =========================
-// DataTable Reference
+// DataTable
 // =========================
 
 const reportTable =
@@ -1431,21 +1383,12 @@ let dataTable =
   null;
 
 
-// =========================
-// IMPORTANT TABLE STATE
-// =========================
-
 const tableReady =
   ref(false);
 
 const tableRenderKey =
   ref(0);
 
-
-// =========================
-// Prevent Watcher During
-// Initial Report Creation
-// =========================
 
 const rebuildingReport =
   ref(false);
@@ -1490,10 +1433,6 @@ const users =
   ref([]);
 
 
-// =========================
-// Filter Options
-// =========================
-
 const contributedToOptions =
   ref([]);
 
@@ -1508,10 +1447,6 @@ const collectionTypeOptions =
 const report =
   ref(null);
 
-
-// =========================
-// UI State
-// =========================
 
 const isLoading =
   ref(false);
@@ -1528,27 +1463,31 @@ const reportGenerated =
 // =========================
 
 const availableColumns = [
+
   {
     key: "crNumber",
     label: "CR Number",
     default: true
   },
+
   {
     key: "date",
     label: "Date",
     default: true
   },
+
   {
     key: "contributor",
     label: "Contributor",
     default: true
   },
+
   {
     key: "numberOfParticipants",
     label: "Participants",
     default: true
   },
-  
+
   {
     key: "contributedTo",
     label: "Contributed To",
@@ -1576,10 +1515,6 @@ const availableColumns = [
 ];
 
 
-// =========================
-// Selected Columns
-// =========================
-
 const getDefaultColumns = () => {
 
   return availableColumns
@@ -1601,10 +1536,6 @@ const selectedColumns =
   );
 
 
-// =========================
-// Selectable Columns
-// =========================
-
 const selectableColumns =
   computed(() => {
 
@@ -1621,54 +1552,43 @@ const groupingColumns =
   computed(() => {
 
     if (
-          groupBy.value === "crNumber"
-        ) {
+      groupBy.value === "crNumber"
+    ) {
 
-          return [
-            "crNumber"
-          ];
+      return ["crNumber"];
 
-        }
+    }
 
 
     if (
       groupBy.value === "user"
     ) {
 
-      return [
-        "contributor"
-      ];
+      return ["contributor"];
 
     }
 
 
     if (
-      groupBy.value ===
-      "contributedTo"
+      groupBy.value === "contributedTo"
     ) {
 
-      return [
-        "contributedTo"
-      ];
+      return ["contributedTo"];
 
     }
 
 
     if (
-      groupBy.value ===
-      "collectionType"
+      groupBy.value === "collectionType"
     ) {
 
-      return [
-        "collectionType"
-      ];
+      return ["collectionType"];
 
     }
 
 
     if (
-      groupBy.value ===
-      "date-user"
+      groupBy.value === "date-user"
     ) {
 
       return [
@@ -1684,10 +1604,6 @@ const groupingColumns =
   });
 
 
-// =========================
-// Is Grouping Column
-// =========================
-
 const isGroupingColumn = (
   columnKey
 ) => {
@@ -1698,10 +1614,6 @@ const isGroupingColumn = (
 
 };
 
-
-// =========================
-// Required Column
-// =========================
 
 const isRequiredColumn = (
   columnKey
@@ -1720,10 +1632,6 @@ const isRequiredColumn = (
 
 };
 
-
-// =========================
-// Is Column Visible
-// =========================
 
 const isColumnVisible = (
   columnKey
@@ -1744,10 +1652,6 @@ const isColumnVisible = (
 
 };
 
-
-// =========================
-// Toggle Column
-// =========================
 
 const toggleColumn = (
   columnKey
@@ -1878,6 +1782,16 @@ const visibleColumns =
         ...otherColumns,
 
         {
+          key: "totalCash",
+          label: "Total Cash"
+        },
+
+        {
+          key: "totalOnline",
+          label: "Total Online"
+        },
+
+        {
           key: "totalAmount",
           label: "Total Amount"
         }
@@ -1897,10 +1811,6 @@ const visibleColumns =
   });
 
 
-// =========================
-// Table Column Count
-// =========================
-
 const tableColumnCount =
   computed(() => {
 
@@ -1908,10 +1818,6 @@ const tableColumnCount =
 
   });
 
-
-// =========================
-// Reset Columns
-// =========================
 
 const resetColumns = () => {
 
@@ -2002,7 +1908,7 @@ const getUsers = async () => {
 
 
 // =========================
-// Get Contributed To
+// Contribution Options
 // =========================
 
 const getContributedToOptions =
@@ -2038,10 +1944,6 @@ const getContributedToOptions =
 
   };
 
-
-// =========================
-// Get Collection Types
-// =========================
 
 const getCollectionTypeOptions =
   async () => {
@@ -2185,15 +2087,6 @@ const initializeDataTable =
           searching:
             true,
 
-          /*
-            Grouped reports contain multiple rows
-            belonging to the same group.
-
-            Disable ordering and pagination so
-            DataTables does not separate the
-            contribution rows from their group.
-          */
-
           ordering:
             !isGrouped,
 
@@ -2257,6 +2150,7 @@ const initializeDataTable =
 
   };
 
+
 // =========================
 // Rebuild DataTable
 // =========================
@@ -2300,20 +2194,6 @@ const createReport =
       "";
 
 
-    // if (
-    //   !startDate.value ||
-    //   !endDate.value
-    // ) {
-
-    //   notyf.error(
-    //     "Please select a start date and end date."
-    //   );
-
-    //   return;
-
-    // }
-
-
     if (
       startDate.value &&
       endDate.value &&
@@ -2329,10 +2209,6 @@ const createReport =
 
     }
 
-
-    // =========================
-    // Find Contributor
-    // =========================
 
     let contributorName;
 
@@ -2513,7 +2389,6 @@ const createReport =
         errorMessage.value
       );
 
-
     } finally {
 
       rebuildingReport.value =
@@ -2552,7 +2427,7 @@ const reportContributions =
 
 
 // =========================
-// Philippine Date Key
+// Philippine Date
 // =========================
 
 const getPhilippineDateKey = (
@@ -2630,32 +2505,24 @@ const groupedContributions =
         let date =
           null;
 
-          // =========================
-          // CR NUMBER
-          // =========================
 
-          if (
-            groupBy.value ===
-            "crNumber"
-          ) {
+        if (
+          groupBy.value ===
+          "crNumber"
+        ) {
 
-            groupLabel =
-              contribution.crNumber ||
-              "Unknown";
+          groupLabel =
+            contribution.crNumber ||
+            "Unknown";
 
 
-            key =
-              groupLabel
-                .trim()
-                .toLowerCase();
+          key =
+            groupLabel
+              .trim()
+              .toLowerCase();
 
-          }
+        }
 
-
-
-        // =========================
-        // USER
-        // =========================
 
         if (
           groupBy.value === "user"
@@ -2684,10 +2551,6 @@ const groupedContributions =
         }
 
 
-        // =========================
-        // CONTRIBUTED TO
-        // =========================
-
         else if (
           groupBy.value ===
           "contributedTo"
@@ -2706,10 +2569,6 @@ const groupedContributions =
         }
 
 
-        // =========================
-        // COLLECTION TYPE
-        // =========================
-
         else if (
           groupBy.value ===
           "collectionType"
@@ -2727,10 +2586,6 @@ const groupedContributions =
 
         }
 
-
-        // =========================
-        // DATE + USER
-        // =========================
 
         else if (
           groupBy.value ===
@@ -2777,21 +2632,14 @@ const groupedContributions =
           groups.set(
             key,
             {
-
               key,
-
               groupLabel,
-
               user,
-
               date,
-
-              contributions:
-                [],
-
-              totalAmount:
-                0
-
+              contributions: [],
+              totalAmount: 0,
+              cashTotal: 0,
+              onlineTotal: 0
             }
           );
 
@@ -2809,10 +2657,40 @@ const groupedContributions =
         );
 
 
-        group.totalAmount +=
+        const amount =
           Number(
             contribution.amount
           ) || 0;
+
+
+        group.totalAmount +=
+          amount;
+
+
+        const paymentType =
+          String(
+            contribution.collectionType || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (
+          paymentType === "cash"
+        ) {
+
+          group.cashTotal +=
+            amount;
+
+        }
+        else if (
+          paymentType === "online"
+        ) {
+
+          group.onlineTotal +=
+            amount;
+
+        }
 
 
         if (
@@ -2873,7 +2751,8 @@ const groupedContributions =
         }
       );
 
-    } else {
+    }
+    else {
 
       result.sort(
         (a, b) => {
@@ -2948,35 +2827,37 @@ const reportCount =
   });
 
 
-  // =========================
-  // Total Participants
-  // =========================
+// =========================
+// Total Participants
+// =========================
 
-  const reportTotalParticipants =
-    computed(() => {
+const reportTotalParticipants =
+  computed(() => {
 
-      return reportContributions.value.reduce(
-        (total, contribution) => {
+    return reportContributions.value.reduce(
+      (
+        total,
+        contribution
+      ) => {
 
-          return (
-            total +
-            (
-              Number(
-                contribution.numberOfParticipants
-              ) || 1
-            )
-          );
+        return (
+          total +
+          (
+            Number(
+              contribution.numberOfParticipants
+            ) || 1
+          )
+        );
 
-        },
-        0
-      );
+      },
+      0
+    );
 
-    });
-
+  });
 
 
 // =========================
-// Report Total
+// Grand Total
 // =========================
 
 const reportTotal =
@@ -2999,6 +2880,98 @@ const reportTotal =
 
 
 // =========================
+// Grand Cash Total
+// =========================
+
+const reportCashTotal =
+  computed(() => {
+
+    return reportContributions.value.reduce(
+      (
+        total,
+        contribution
+      ) => {
+
+        const paymentType =
+          String(
+            contribution.collectionType || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (
+          paymentType !== "cash"
+        ) {
+
+          return total;
+
+        }
+
+
+        return (
+          total +
+          (
+            Number(
+              contribution.amount
+            ) || 0
+          )
+        );
+
+      },
+      0
+    );
+
+  });
+
+
+// =========================
+// Grand Online Total
+// =========================
+
+const reportOnlineTotal =
+  computed(() => {
+
+    return reportContributions.value.reduce(
+      (
+        total,
+        contribution
+      ) => {
+
+        const paymentType =
+          String(
+            contribution.collectionType || ""
+          )
+            .trim()
+            .toLowerCase();
+
+
+        if (
+          paymentType !== "online"
+        ) {
+
+          return total;
+
+        }
+
+
+        return (
+          total +
+          (
+            Number(
+              contribution.amount
+            ) || 0
+          )
+        );
+
+      },
+      0
+    );
+
+  });
+
+
+// =========================
 // Cell Order
 // =========================
 
@@ -3007,18 +2980,19 @@ const getCellOrder = (
   columnKey
 ) => {
 
-
   if (
     columnKey === "date"
   ) {
 
     return item.date || "";
+
   }
 
 
   if (
     columnKey === "amount"
   ) {
+
     return Number(
       item.amount
     ) || 0;
@@ -3029,21 +3003,20 @@ const getCellOrder = (
   if (
     columnKey === "numberOfParticipants"
   ) {
+
     return Number(
       item.numberOfParticipants
     ) || 1;
+
   }
 
 
-
-  // CR NUMBER
   if (
     columnKey === "crNumber"
   ) {
-    return (
-      item.crNumber ||
-      ""
-    );
+
+    return item.crNumber || "";
+
   }
 
 
@@ -3051,10 +3024,8 @@ const getCellOrder = (
     columnKey === "contributor"
   ) {
 
-    return (
-      item.user?.fullName ||
-      ""
-    );
+    return item.user?.fullName || "";
+
   }
 
 
@@ -3062,10 +3033,7 @@ const getCellOrder = (
     columnKey === "contributedTo"
   ) {
 
-    return (
-      item.contributedTo ||
-      ""
-    );
+    return item.contributedTo || "";
 
   }
 
@@ -3074,10 +3042,7 @@ const getCellOrder = (
     columnKey === "collectionType"
   ) {
 
-    return (
-      item.collectionType ||
-      ""
-    );
+    return item.collectionType || "";
 
   }
 
@@ -3086,19 +3051,15 @@ const getCellOrder = (
     columnKey === "description"
   ) {
 
-    return (
-      item.description ||
-      ""
-    );
+    return item.description || "";
+
   }
-
-
-
 
 
   return "";
 
 };
+
 
 // =========================
 // Contribution Cell Order
@@ -3109,161 +3070,9 @@ const getContributionCellOrder = (
   columnKey
 ) => {
 
-  if (
-    columnKey === "date"
-  ) {
-
-    return item.date || "";
-
-  }
-
-
-  if (
-    columnKey === "amount"
-  ) {
-
-    return Number(
-      item.amount
-    ) || 0;
-
-  }
-
-
-  if (
-    columnKey === "crNumber"
-  ) {
-
-    return (
-      item.crNumber ||
-      ""
-    );
-
-  }
-
-
-  if (
-    columnKey === "contributor"
-  ) {
-
-    return (
-      item.user?.fullName ||
-      ""
-    );
-
-  }
-
-
-  if (
-    columnKey === "contributedTo"
-  ) {
-
-    return (
-      item.contributedTo ||
-      ""
-    );
-
-  }
-
-
-  if (
-    columnKey === "collectionType"
-  ) {
-
-    return (
-      item.collectionType ||
-      ""
-    );
-
-  }
-
-
-  if (
-    columnKey === "description"
-  ) {
-
-    return (
-      item.description ||
-      ""
-    );
-
-  }
-
-
-  return "";
-
-};
-
-
-// =========================
-// Group Cell Order
-// =========================
-
-const getGroupCellOrder = (
-  item,
-  columnKey
-) => {
-
-  if (
-    columnKey === "date"
-  ) {
-
-    return item.date || "";
-
-  }
-
-
-  if (
-    columnKey === "contributor"
-  ) {
-
-    return (
-      item.user?.fullName ||
-      item.groupLabel ||
-      ""
-    );
-
-  }
-
-
-  if (
-    columnKey === "amount"
-  ) {
-
-    return Number(
-      item.totalAmount
-    ) || 0;
-
-  }
-
-
-  if (
-    columnKey === "totalAmount"
-  ) {
-
-    return Number(
-      item.totalAmount
-    ) || 0;
-
-  }
-
-
-  // CR NUMBER
-
-  if (
-    columnKey === "crNumber"
-  ) {
-
-    return (
-      item.contributions?.[0]?.crNumber ||
-      ""
-    );
-
-  }
-
-
-  return (
-    item.groupLabel ||
-    ""
+  return getCellOrder(
+    item,
+    columnKey
   );
 
 };
@@ -3481,21 +3290,23 @@ const exportToExcel = () => {
     );
 
 
+  const headerRowIndex =
+    rows.length;
+
+
   rows.push(
     headers
   );
 
 
   // =========================
-  // Cell Value
+  // Export Cell Value
   // =========================
 
   const getExportValue = (
     item,
     columnKey
   ) => {
-
-    // DATE
 
     if (
       columnKey === "date"
@@ -3508,22 +3319,17 @@ const exportToExcel = () => {
     }
 
 
-    // CONTRIBUTOR
-
     if (
       columnKey === "contributor"
     ) {
 
       return (
         item.user?.fullName ||
-        item.groupLabel ||
         "Unknown User"
       );
 
     }
 
-
-    // CR NUMBER
 
     if (
       columnKey === "crNumber"
@@ -3531,14 +3337,11 @@ const exportToExcel = () => {
 
       return (
         item.crNumber ||
-        item.groupLabel ||
         ""
       );
 
     }
 
-
-    // CONTRIBUTED TO
 
     if (
       columnKey === "contributedTo"
@@ -3546,14 +3349,11 @@ const exportToExcel = () => {
 
       return (
         item.contributedTo ||
-        item.groupLabel ||
         ""
       );
 
     }
 
-
-    // COLLECTION TYPE
 
     if (
       columnKey === "collectionType"
@@ -3561,14 +3361,11 @@ const exportToExcel = () => {
 
       return (
         item.collectionType ||
-        item.groupLabel ||
         ""
       );
 
     }
 
-
-    // DESCRIPTION
 
     if (
       columnKey === "description"
@@ -3581,7 +3378,6 @@ const exportToExcel = () => {
 
     }
 
-    // PARTICIPANTS
 
     if (
       columnKey === "numberOfParticipants"
@@ -3594,8 +3390,6 @@ const exportToExcel = () => {
     }
 
 
-    // AMOUNT
-
     if (
       columnKey === "amount"
     ) {
@@ -3607,90 +3401,209 @@ const exportToExcel = () => {
     }
 
 
-    // TOTAL AMOUNT
-
-    if (
-      columnKey === "totalAmount"
-    ) {
-
-      return Number(
-        item.totalAmount
-      ) || 0;
-
-    }
-
-
     return "";
 
   };
 
 
   // =========================
-  // Rows
+  // Detail Rows
   // =========================
 
-  reportRows.value.forEach(
-    item => {
+  /*
+    Every contribution remains ONE row.
 
-      const row = [];
+    Amount contains the individual
+    contribution amount.
 
+    Group summary columns remain blank
+    for individual contribution rows.
+  */
 
-      visibleColumns.value.forEach(
-        column => {
+  if (
+    !groupBy.value
+  ) {
 
-          /*
-            For grouped reports, normal detail
-            columns can contain multiple contributions.
-          */
+    reportContributions.value.forEach(
+      contribution => {
 
-          if (
-            groupBy.value &&
-            !isGroupingColumn(
-              column.key
-            ) &&
-            column.key !== "totalAmount"
-          ) {
-
-            const values =
-              (item.contributions || [])
-                .map(
-                  contribution =>
-                    getExportValue(
-                      contribution,
-                      column.key
-                    )
-                )
-                .filter(
-                  value =>
-                    value !== ""
-                );
+        const row = [];
 
 
-            row.push(
-              values.join("\n")
-            );
-
-          } else {
+        visibleColumns.value.forEach(
+          column => {
 
             row.push(
               getExportValue(
-                item,
+                contribution,
                 column.key
               )
             );
 
           }
-
-        }
-      );
+        );
 
 
-      rows.push(
-        row
-      );
+        rows.push(
+          row
+        );
 
-    }
-  );
+      }
+    );
+
+  }
+
+
+  // =========================
+  // Grouped Rows
+  // =========================
+
+  /*
+    The Excel sheet now follows the
+    same structure as the DataTable:
+
+    Contribution
+    Contribution
+    Group Total
+    Contribution
+    Contribution
+    Group Total
+    ...
+  */
+
+  if (
+    groupBy.value
+  ) {
+
+    groupedContributions.value.forEach(
+      group => {
+
+        // =========================
+        // Contribution Rows
+        // =========================
+
+        group.contributions.forEach(
+          contribution => {
+
+            const row = [];
+
+
+            visibleColumns.value.forEach(
+              column => {
+
+                if (
+                  column.key === "totalCash" ||
+                  column.key === "totalOnline" ||
+                  column.key === "totalAmount"
+                ) {
+
+                  row.push("");
+
+                  return;
+
+                }
+
+
+                row.push(
+                  getExportValue(
+                    contribution,
+                    column.key
+                  )
+                );
+
+              }
+            );
+
+
+            rows.push(
+              row
+            );
+
+          }
+        );
+
+
+        // =========================
+        // Group Total Row
+        // =========================
+
+        const groupTotalRow =
+          new Array(
+            visibleColumns.value.length
+          ).fill("");
+
+
+        visibleColumns.value.forEach(
+          (
+            column,
+            index
+          ) => {
+
+            if (
+              index === 0
+            ) {
+
+              groupTotalRow[index] =
+                "GROUP TOTAL";
+
+              return;
+
+            }
+
+
+            if (
+              column.key === "totalCash"
+            ) {
+
+              groupTotalRow[index] =
+                Number(
+                  group.cashTotal
+                ) || 0;
+
+              return;
+
+            }
+
+
+            if (
+              column.key === "totalOnline"
+            ) {
+
+              groupTotalRow[index] =
+                Number(
+                  group.onlineTotal
+                ) || 0;
+
+              return;
+
+            }
+
+
+            if (
+              column.key === "totalAmount"
+            ) {
+
+              groupTotalRow[index] =
+                Number(
+                  group.totalAmount
+                ) || 0;
+
+              return;
+
+            }
+
+          }
+        );
+
+
+        rows.push(
+          groupTotalRow
+        );
+
+      }
+    );
+
+  }
 
 
   // =========================
@@ -3704,29 +3617,102 @@ const exportToExcel = () => {
 
 
   if (
-    visibleColumns.value.length === 1
+    groupBy.value
   ) {
 
-    grandTotalRow[0] =
-      reportTotal.value;
+    visibleColumns.value.forEach(
+      (
+        column,
+        index
+      ) => {
 
-  } else {
+        if (
+          index === 0
+        ) {
 
-    grandTotalRow[
-      visibleColumns.value.length - 2
-    ] =
-      "GRAND TOTAL";
+          grandTotalRow[index] =
+            "GRAND TOTAL";
+
+          return;
+
+        }
 
 
-    grandTotalRow[
-      visibleColumns.value.length - 1
-    ] =
-      reportTotal.value;
+        if (
+          column.key === "totalCash"
+        ) {
+
+          grandTotalRow[index] =
+            Number(
+              reportCashTotal.value
+            ) || 0;
+
+          return;
+
+        }
+
+
+        if (
+          column.key === "totalOnline"
+        ) {
+
+          grandTotalRow[index] =
+            Number(
+              reportOnlineTotal.value
+            ) || 0;
+
+          return;
+
+        }
+
+
+        if (
+          column.key === "totalAmount"
+        ) {
+
+          grandTotalRow[index] =
+            Number(
+              reportTotal.value
+            ) || 0;
+
+          return;
+
+        }
+
+      }
+    );
+
+  }
+  else {
+
+    if (
+      visibleColumns.value.length === 1
+    ) {
+
+      grandTotalRow[0] =
+        reportTotal.value;
+
+    }
+    else {
+
+      grandTotalRow[
+        visibleColumns.value.length - 2
+      ] =
+        "GRAND TOTAL";
+
+
+      grandTotalRow[
+        visibleColumns.value.length - 1
+      ] =
+        reportTotal.value;
+
+    }
 
   }
 
 
   rows.push([]);
+
 
   rows.push(
     grandTotalRow
@@ -3744,24 +3730,92 @@ const exportToExcel = () => {
 
 
   if (
-    visibleColumns.value.length === 1
+    groupBy.value
   ) {
 
-    totalParticipantsRow[0] =
-      reportTotalParticipants.value;
+    visibleColumns.value.forEach(
+      (
+        column,
+        index
+      ) => {
 
-  } else {
+        if (
+          index === 0
+        ) {
 
-    totalParticipantsRow[
-      visibleColumns.value.length - 2
-    ] =
-      "TOTAL PARTICIPANTS";
+          totalParticipantsRow[index] =
+            "TOTAL PARTICIPANTS";
+
+          return;
+
+        }
 
 
-    totalParticipantsRow[
-      visibleColumns.value.length - 1
-    ] =
-      reportTotalParticipants.value;
+        if (
+          column.key ===
+          "numberOfParticipants"
+        ) {
+
+          totalParticipantsRow[index] =
+            reportTotalParticipants.value;
+
+        }
+
+      }
+    );
+
+
+    /*
+      If Participants was hidden,
+      put the total in the last column
+      so it is still visible in Excel.
+    */
+
+    const hasParticipantColumn =
+      visibleColumns.value.some(
+        column =>
+          column.key ===
+          "numberOfParticipants"
+      );
+
+
+    if (
+      !hasParticipantColumn &&
+      visibleColumns.value.length > 1
+    ) {
+
+      totalParticipantsRow[
+        visibleColumns.value.length - 1
+      ] =
+        reportTotalParticipants.value;
+
+    }
+
+  }
+  else {
+
+    if (
+      visibleColumns.value.length === 1
+    ) {
+
+      totalParticipantsRow[0] =
+        reportTotalParticipants.value;
+
+    }
+    else {
+
+      totalParticipantsRow[
+        visibleColumns.value.length - 2
+      ] =
+        "TOTAL PARTICIPANTS";
+
+
+      totalParticipantsRow[
+        visibleColumns.value.length - 1
+      ] =
+        reportTotalParticipants.value;
+
+    }
 
   }
 
@@ -3769,6 +3823,7 @@ const exportToExcel = () => {
   rows.push(
     totalParticipantsRow
   );
+
 
   // =========================
   // Create Worksheet
@@ -3867,6 +3922,8 @@ const exportToExcel = () => {
 
       if (
         column.key !== "amount" &&
+        column.key !== "totalCash" &&
+        column.key !== "totalOnline" &&
         column.key !== "totalAmount"
       ) {
 
@@ -3876,7 +3933,7 @@ const exportToExcel = () => {
 
 
       for (
-        let rowIndex = 4;
+        let rowIndex = headerRowIndex + 1;
         rowIndex < rows.length;
         rowIndex++
       ) {
@@ -4017,7 +4074,6 @@ onBeforeUnmount(() => {
 
 
 <style scoped>
-
 
 /* =========================
    CR Number
@@ -4588,6 +4644,7 @@ onBeforeUnmount(() => {
 
 }
 
+
 .table tbody td.text-end {
 
   text-align:
@@ -4656,7 +4713,7 @@ onBeforeUnmount(() => {
 .group-total-row td {
 
   padding:
-    10px 18px;
+    11px 18px;
 
   background:
     #f5f7f9;
@@ -4673,12 +4730,42 @@ onBeforeUnmount(() => {
 }
 
 
-.group-total-row td:last-child {
+.group-total-row td:first-child {
+
+  color:
+    #34495e;
 
   font-weight:
     700;
 
 }
+
+
+.group-total-value {
+
+  color:
+    #34495e;
+
+  font-weight:
+    700;
+
+  white-space:
+    nowrap;
+
+}
+
+
+.grand-group-total {
+
+  color:
+    #1e3a5f;
+
+  font-size:
+    16px;
+
+}
+
+
 /* =========================
    Collection Type
 ========================= */
@@ -4762,6 +4849,24 @@ onBeforeUnmount(() => {
 
   color:
     #1e3a5f;
+
+  background:
+    #f5f7f9;
+
+  font-size:
+    17px;
+
+}
+
+
+/* =========================
+   Participant Total
+========================= */
+
+.participant-total {
+
+  color:
+    #1e5a8a;
 
   background:
     #f5f7f9;
@@ -4901,7 +5006,7 @@ onBeforeUnmount(() => {
   .table {
 
     min-width:
-      850px;
+      1100px;
 
   }
 

@@ -165,6 +165,9 @@
                       {{ item.fullName }}
                     </div>
 
+
+
+
                     <small
                       v-if="item.userId"
                       class="text-muted"
@@ -175,35 +178,35 @@
                   </td>
 
 
-                  <!-- Contributions -->
-                  <td>
+                 <!-- Contributions -->
+                 <td>
 
-                    <div
-                      v-for="(contribution, index) in item.contributions"
-                      :key="contribution._id || index"
-                      class="contribution-detail"
-                    >
+                   <div
+                     v-for="(contribution, index) in item.contributions"
+                     :key="contribution._id || index"
+                     class="contribution-detail"
+                   >
 
-                      <div class="fw-semibold">
-                        {{ contribution.contributedTo }}
-                      </div>
+                     <div class="fw-semibold">
+                       {{ contribution.contributedTo }}
+                     </div>
 
-                      
+                     <small class="collection-type">
+                       {{ contribution.collectionType }}
+                     </small>
 
+                     <div class="text-muted contribution-description">
+                       {{ contribution.description }}
+                     </div>
 
+                     <small class="text-muted">
+                       Participants:
+                       {{ contribution.numberOfParticipants }}
+                     </small>
 
-                      <small class="collection-type">
-                        {{ contribution.collectionType }}
-                      </small>
+                   </div>
 
-                      <div class="text-muted contribution-description">
-                        {{ contribution.description }}
-                      </div>
-
-                    </div>
-
-                  </td>
-
+                 </td>
 
                   <!-- Individual Amounts -->
                   <td class="text-end">
@@ -640,6 +643,11 @@ const groupedContributions =
 
           crNumber:
               item.crNumber,
+
+          numberOfParticipants:
+              Number(
+                item.numberOfParticipants
+              ) || 1,
 
           contributedTo:
             item.contributedTo,

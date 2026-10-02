@@ -102,6 +102,28 @@
 
 
                 <!-- =========================
+                     Number Of Participants
+                ========================== -->
+
+                <div class="mb-3">
+
+                  <label class="form-label fw-semibold">
+                    Number of Participants
+                  </label>
+
+                  <input
+                    type="number"
+                    class="form-control"
+                    v-model="numberOfParticipants"
+                    placeholder="Enter number of participants"
+                    min="1"
+                    step="1"
+                    required
+                  />
+
+                </div>
+
+                <!-- =========================
                      Contribution Date
                 ========================== -->
 
@@ -303,13 +325,19 @@ const router =
 // Form Data
 // =========================
 
-const user =
-  ref("");
+
+const crNumber = ref("");
+
+const user = ref("");
+const numberOfParticipants =
+  ref(1);
 
 const userSearch =
   ref("");
 
-const crNumber = ref("");
+
+
+
 
 
 const date =
@@ -543,6 +571,33 @@ const addContribution = async () => {
 
     }
 
+    // =========================
+    // Validate Number Of Participants
+    // =========================
+
+    const finalNumberOfParticipants =
+      Number(
+        numberOfParticipants.value
+      ) || 1;
+
+
+    if (
+      finalNumberOfParticipants < 1 ||
+      !Number.isInteger(
+        finalNumberOfParticipants
+      )
+    ) {
+
+      errorMessage.value =
+        "Number of participants must be at least 1.";
+
+      isLoading.value =
+        false;
+
+      return;
+
+    }
+
 
     // =========================
     // Validate Date
@@ -616,6 +671,9 @@ const addContribution = async () => {
 
         user:
           selectedUser._id,
+
+        numberOfParticipants:
+             finalNumberOfParticipants,
 
         date:
           date.value,

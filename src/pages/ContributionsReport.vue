@@ -41,7 +41,6 @@
           </router-link>
 
         </div>
-
       </div>
 
 
@@ -652,11 +651,7 @@
 
                       <!-- CONTRIBUTOR -->
 
-                      <template
-                        v-else-if="
-                          column.key === 'contributor'
-                        "
-                      >
+                      <template v-else-if="column.key === 'contributor'">
 
                         <div class="fw-semibold">
 
@@ -677,6 +672,24 @@
                           {{ item.user.userId }}
 
                         </small>
+                      </template>
+
+
+                      <!-- PARTICIPANTS -->
+
+                      <template
+                        v-else-if="
+                          column.key === 'numberOfParticipants'
+                        "
+                      >
+
+                        <span class="fw-semibold">
+
+                          {{ Number(
+                            item.numberOfParticipants
+                          ) || 1 }}
+
+                        </span>
 
                       </template>
 
@@ -784,7 +797,6 @@
                     </td>
 
                   </tr>
-
                 </template>
 
 
@@ -992,20 +1004,16 @@
 
 
                           <!-- CONTRIBUTOR -->
-
                           <template
                             v-else-if="
                               column.key === 'contributor'
                             "
                           >
-
                             <div class="fw-semibold">
-
                               {{
                                 contribution.user?.fullName ||
                                 "Unknown User"
                               }}
-
                             </div>
 
 
@@ -1022,12 +1030,10 @@
                               }}
 
                             </small>
-
                           </template>
 
 
                           <!-- CR NUMBER -->
-
                           <template
                             v-else-if="
                               column.key === 'crNumber'
@@ -1240,13 +1246,13 @@
               </tbody>
 
 
-              <!-- =========================
-                   Grand Total
-              ========================== -->
-
               <tfoot
                 v-if="reportRows.length > 0"
               >
+
+                <!-- =========================
+                     Grand Total
+                ========================== -->
 
                 <tr>
 
@@ -1266,7 +1272,6 @@
 
 
                   <th
-                    v-if="visibleColumns.length > 1"
                     class="text-end grand-total"
                   >
 
@@ -1276,14 +1281,35 @@
 
                   </th>
 
+                </tr>
+
+
+                <!-- =========================
+                     Total Participants
+                ========================== -->
+
+                <tr>
+
                   <th
-                    v-else
-                    class="text-end grand-total"
+                    :colspan="
+                      Math.max(
+                        visibleColumns.length - 1,
+                        1
+                      )
+                    "
+                    class="text-end"
                   >
 
-                    ₱{{ formatAmount(
-                      reportTotal
-                    ) }}
+                    Total Participants
+
+                  </th>
+
+
+                  <th
+                    class="text-end participant-total"
+                  >
+
+                    {{ reportTotalParticipants }}
 
                   </th>
 
@@ -1507,21 +1533,22 @@ const availableColumns = [
     label: "CR Number",
     default: true
   },
-
   {
     key: "date",
     label: "Date",
     default: true
   },
-
   {
     key: "contributor",
     label: "Contributor",
     default: true
   },
-
+  {
+    key: "numberOfParticipants",
+    label: "Participants",
+    default: true
+  },
   
-
   {
     key: "contributedTo",
     label: "Contributed To",
@@ -2921,6 +2948,33 @@ const reportCount =
   });
 
 
+  // =========================
+  // Total Participants
+  // =========================
+
+  const reportTotalParticipants =
+    computed(() => {
+
+      return reportContributions.value.reduce(
+        (total, contribution) => {
+
+          return (
+            total +
+            (
+              Number(
+                contribution.numberOfParticipants
+              ) || 1
+            )
+          );
+
+        },
+        0
+      );
+
+    });
+
+
+
 // =========================
 // Report Total
 // =========================
@@ -2953,19 +3007,18 @@ const getCellOrder = (
   columnKey
 ) => {
 
+
   if (
     columnKey === "date"
   ) {
 
     return item.date || "";
-
   }
 
 
   if (
     columnKey === "amount"
   ) {
-
     return Number(
       item.amount
     ) || 0;
@@ -2973,17 +3026,24 @@ const getCellOrder = (
   }
 
 
-  // CR NUMBER
+  if (
+    columnKey === "numberOfParticipants"
+  ) {
+    return Number(
+      item.numberOfParticipants
+    ) || 1;
+  }
 
+
+
+  // CR NUMBER
   if (
     columnKey === "crNumber"
   ) {
-
     return (
       item.crNumber ||
       ""
     );
-
   }
 
 
@@ -2995,7 +3055,6 @@ const getCellOrder = (
       item.user?.fullName ||
       ""
     );
-
   }
 
 
@@ -3031,8 +3090,10 @@ const getCellOrder = (
       item.description ||
       ""
     );
-
   }
+
+
+
 
 
   return "";
@@ -3520,6 +3581,18 @@ const exportToExcel = () => {
 
     }
 
+    // PARTICIPANTS
+
+    if (
+      columnKey === "numberOfParticipants"
+    ) {
+
+      return Number(
+        item.numberOfParticipants
+      ) || 1;
+
+    }
+
 
     // AMOUNT
 
@@ -3659,6 +3732,43 @@ const exportToExcel = () => {
     grandTotalRow
   );
 
+
+  // =========================
+  // Total Participants
+  // =========================
+
+  const totalParticipantsRow =
+    new Array(
+      visibleColumns.value.length
+    ).fill("");
+
+
+  if (
+    visibleColumns.value.length === 1
+  ) {
+
+    totalParticipantsRow[0] =
+      reportTotalParticipants.value;
+
+  } else {
+
+    totalParticipantsRow[
+      visibleColumns.value.length - 2
+    ] =
+      "TOTAL PARTICIPANTS";
+
+
+    totalParticipantsRow[
+      visibleColumns.value.length - 1
+    ] =
+      reportTotalParticipants.value;
+
+  }
+
+
+  rows.push(
+    totalParticipantsRow
+  );
 
   // =========================
   // Create Worksheet

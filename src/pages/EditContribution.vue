@@ -32,7 +32,6 @@
             Contributions
           </router-link>
 
-
           <router-link
             to="/contributions/report"
             class="btn btn-warning"

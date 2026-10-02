@@ -15,8 +15,6 @@
                         {{ selectedUser.fullName || "Unknown User" }}
                     </h5>
 
-
-
                     <small class="text-muted">
                         {{ appliedStartDate || "Beginning" }}
                         →
@@ -221,25 +219,152 @@
 
                         </tbody>
 
+                        <!-- Modal Totals -->
                         <tfoot>
 
+                            <!-- Grand Total -->
                             <tr>
 
                                 <th
-                                    colspan="5"
+                                    colspan="2"
                                     class="text-end"
                                 >
-                                    Total
+                                    Grand Total
                                 </th>
 
                                 <th
-                                    class="text-end text-success"
+                                    colspan="3"
                                 >
+
+                                    <div class="d-flex flex-wrap gap-2">
+
+                                        <span
+                                            v-for="contributedTo in contributedToColumns"
+                                            :key="`modal-grand-${contributedTo}`"
+                                            class="badge bg-light text-dark border"
+                                        >
+                                            {{ contributedTo }}:
+                                            ₱{{
+                                                formatAmount(
+                                                    getSelectedUserContributionAmount(
+                                                        contributedTo
+                                                    )
+                                                )
+                                            }}
+                                        </span>
+
+                                    </div>
+
+                                </th>
+
+                                <th class="text-end">
+
                                     ₱{{
                                         formatAmount(
                                             selectedUser.totalContribution
                                         )
                                     }}
+
+                                </th>
+
+                                <th></th>
+
+                            </tr>
+
+
+                            <!-- Online Total -->
+                            <tr>
+
+                                <th
+                                    colspan="2"
+                                    class="text-end text-primary"
+                                >
+                                    Online Total
+                                </th>
+
+                                <th
+                                    colspan="3"
+                                >
+
+                                    <div class="d-flex flex-wrap gap-2">
+
+                                        <span
+                                            v-for="contributedTo in contributedToColumns"
+                                            :key="`modal-online-${contributedTo}`"
+                                            class="badge bg-primary-subtle text-primary border border-primary-subtle"
+                                        >
+                                            {{ contributedTo }}:
+                                            ₱{{
+                                                formatAmount(
+                                                    getSelectedUserContributedToOnlineTotal(
+                                                        contributedTo
+                                                    )
+                                                )
+                                            }}
+                                        </span>
+
+                                    </div>
+
+                                </th>
+
+                                <th class="text-end text-primary">
+
+                                    ₱{{
+                                        formatAmount(
+                                            selectedUserOnlineTotal
+                                        )
+                                    }}
+
+                                </th>
+
+                                <th></th>
+
+                            </tr>
+
+
+                            <!-- Cash Total -->
+                            <tr>
+
+                                <th
+                                    colspan="2"
+                                    class="text-end text-success"
+                                >
+                                    Cash Total
+                                </th>
+
+                                <th
+                                    colspan="3"
+                                >
+
+                                    <div class="d-flex flex-wrap gap-2">
+
+                                        <span
+                                            v-for="contributedTo in contributedToColumns"
+                                            :key="`modal-cash-${contributedTo}`"
+                                            class="badge bg-success-subtle text-success border border-success-subtle"
+                                        >
+                                            {{ contributedTo }}:
+                                            ₱{{
+                                                formatAmount(
+                                                    getSelectedUserContributedToCashTotal(
+                                                        contributedTo
+                                                    )
+                                                )
+                                            }}
+                                        </span>
+
+                                    </div>
+
+                                </th>
+
+                                <th class="text-end text-success">
+
+                                    ₱{{
+                                        formatAmount(
+                                            selectedUserCashTotal
+                                        )
+                                    }}
+
                                 </th>
 
                                 <th></th>
@@ -271,7 +396,6 @@
 
 
     <!-- Main Page -->
-    <!-- Main Page -->
     <div class="contribution-page">
 
         <div class="container">
@@ -302,8 +426,6 @@
                     >
                         Members
                     </router-link>
-
-
 
 
                     <!-- Report -->
@@ -402,7 +524,10 @@
 
 
                     <!-- Applied Date Range -->
-                    <div v-if="appliedStartDate || appliedEndDate" class="mt-3">
+                    <div
+                        v-if="appliedStartDate || appliedEndDate"
+                        class="mt-3"
+                    >
 
                         <small class="text-muted">
 
@@ -535,7 +660,6 @@
 
 
             <!-- Users Table -->
-            <!-- Users Table -->
             <div
                 v-else
                 class="card contribution-card shadow border-0"
@@ -551,6 +675,7 @@
                         >
 
                             <thead>
+
                                 <tr>
 
                                     <th>
@@ -579,6 +704,7 @@
                                     </th>
 
                                 </tr>
+
                             </thead>
 
 
@@ -716,9 +842,10 @@
                             </tbody>
 
 
-                            <!-- Grand Total -->
+                            <!-- Totals -->
                             <tfoot>
 
+                                <!-- Grand Total -->
                                 <tr>
 
                                     <th
@@ -728,8 +855,7 @@
                                         Grand Total
                                     </th>
 
-
-                                    <!-- Per Contribution Total -->
+                                    <!-- Per Contributed To -->
                                     <th
                                         v-for="contributedTo in contributedToColumns"
                                         :key="`total-${contributedTo}`"
@@ -746,7 +872,6 @@
 
                                     </th>
 
-
                                     <!-- Overall Total -->
                                     <th class="text-end">
 
@@ -758,6 +883,91 @@
 
                                     </th>
 
+                                    <th></th>
+
+                                </tr>
+
+
+                                <!-- Online Total -->
+                                <tr>
+
+                                    <th
+                                        colspan="2"
+                                        class="text-end text-primary"
+                                    >
+                                        Online Total
+                                    </th>
+
+                                    <!-- Per Contributed To Online -->
+                                    <th
+                                        v-for="contributedTo in contributedToColumns"
+                                        :key="`online-total-${contributedTo}`"
+                                        class="text-end text-primary"
+                                    >
+
+                                        ₱{{
+                                            formatAmount(
+                                                getContributedToOnlineTotal(
+                                                    contributedTo
+                                                )
+                                            )
+                                        }}
+
+                                    </th>
+
+                                    <!-- Overall Online -->
+                                    <th class="text-end text-primary">
+
+                                        ₱{{
+                                            formatAmount(
+                                                onlineTotal
+                                            )
+                                        }}
+
+                                    </th>
+
+                                    <th></th>
+
+                                </tr>
+
+
+                                <!-- Cash Total -->
+                                <tr>
+
+                                    <th
+                                        colspan="2"
+                                        class="text-end text-success"
+                                    >
+                                        Cash Total
+                                    </th>
+
+                                    <!-- Per Contributed To Cash -->
+                                    <th
+                                        v-for="contributedTo in contributedToColumns"
+                                        :key="`cash-total-${contributedTo}`"
+                                        class="text-end text-success"
+                                    >
+
+                                        ₱{{
+                                            formatAmount(
+                                                getContributedToCashTotal(
+                                                    contributedTo
+                                                )
+                                            )
+                                        }}
+
+                                    </th>
+
+                                    <!-- Overall Cash -->
+                                    <th class="text-end text-success">
+
+                                        ₱{{
+                                            formatAmount(
+                                                cashTotal
+                                            )
+                                        }}
+
+                                    </th>
 
                                     <th></th>
 
@@ -779,1006 +989,1576 @@
 
 </template>
 
+
 <script setup>
 
-	import {
-	    ref,
-	    computed,
-	    onMounted,
-	    nextTick
-	} from "vue";
+import {
+    ref,
+    computed,
+    onMounted,
+    nextTick
+} from "vue";
 
-	import * as XLSX from "xlsx";
+import * as XLSX from "xlsx";
 
-	import DataTable from "datatables.net-bs5";
-	import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
+import DataTable from "datatables.net-bs5";
+import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
 
-	import api from "../api";
+import api from "../api";
 
 
-	// --------------------------------------------------
-	// State
-	// --------------------------------------------------
+// --------------------------------------------------
+// State
+// --------------------------------------------------
 
-	const users = ref([]);
+const users = ref([]);
 
-	const loading = ref(false);
+const loading = ref(false);
 
-	const errorMessage = ref("");
+const errorMessage = ref("");
 
 
-	// Date filter inputs
-	const startDate = ref("");
-	const endDate = ref("");
+// Date filter inputs
+const startDate = ref("");
+const endDate = ref("");
 
 
-	// Last successfully applied date range
-	const appliedDateRange = ref({
-	    startDate: "",
-	    endDate: ""
-	});
+// Last successfully applied date range
+const appliedDateRange = ref({
+    startDate: "",
+    endDate: ""
+});
 
-	const appliedStartDate = computed(() => {
-	    return appliedDateRange.value.startDate;
-	});
+const appliedStartDate = computed(() => {
 
-	const appliedEndDate = computed(() => {
-	    return appliedDateRange.value.endDate;
-	});
+    return appliedDateRange.value.startDate;
 
+});
 
-	// Selected user for modal
-	const selectedUser = ref(null);
+const appliedEndDate = computed(() => {
 
+    return appliedDateRange.value.endDate;
 
-	// DataTable
-	const usersTable = ref(null);
+});
 
-	let dataTable = null;
 
+// Selected user for modal
+const selectedUser = ref(null);
 
-	// Contribution amount visibility
-	const visibleContributionAmounts = ref(
-	    new Set()
-	);
 
+// DataTable
+const usersTable = ref(null);
 
-	// --------------------------------------------------
-	// Computed
-	// --------------------------------------------------
+let dataTable = null;
 
-	const usersWithContributions = computed(() => {
 
-	    return users.value.filter(
-	        user =>
-	            Number(
-	                user.contributionCount
-	            ) > 0
-	    ).length;
+// Contribution amount visibility
+const visibleContributionAmounts = ref(
+    new Set()
+);
 
-	});
 
+// --------------------------------------------------
+// Computed
+// --------------------------------------------------
 
-	const totalContributionCount = computed(() => {
+const usersWithContributions = computed(() => {
 
-	    return users.value.reduce(
-	        (
-	            total,
-	            user
-	        ) => {
+    return users.value.filter(
+        user =>
+            Number(
+                user.contributionCount
+            ) > 0
+    ).length;
 
-	            return (
-	                total +
-	                (
-	                    Number(
-	                        user.contributionCount
-	                    ) || 0
-	                )
-	            );
+});
 
-	        },
-	        0
-	    );
 
-	});
+const totalContributionCount = computed(() => {
 
+    return users.value.reduce(
+        (
+            total,
+            user
+        ) => {
 
-	const contributedToColumns = computed(() => {
+            return (
+                total +
+                (
+                    Number(
+                        user.contributionCount
+                    ) || 0
+                )
+            );
 
-	    const values = new Set();
+        },
+        0
+    );
+
+});
+
+
+const contributedToColumns = computed(() => {
+
+    const values = new Set();
+
+    users.value.forEach(
+        user => {
+
+            (
+                user.contributions || []
+            ).forEach(
+                contribution => {
+
+                    if (
+                        contribution.contributedTo &&
+                        contribution.contributedTo.trim()
+                    ) {
+
+                        values.add(
+                            contribution.contributedTo.trim()
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+    return Array.from(values).sort(
+        (
+            a,
+            b
+        ) =>
+            a.localeCompare(b)
+    );
+
+});
+
+
+// --------------------------------------------------
+// Overall Online Total
+// --------------------------------------------------
+
+const onlineTotal = computed(() => {
+
+    return users.value.reduce(
+        (
+            total,
+            user
+        ) => {
+
+            return (
+                total +
+                (
+                    user.contributions || []
+                )
+                    .filter(
+                        contribution =>
+                            (
+                                contribution.collectionType ||
+                                ""
+                            )
+                                .trim()
+                                .toLowerCase() ===
+                            "online"
+                    )
+                    .reduce(
+                        (
+                            subtotal,
+                            contribution
+                        ) => {
+
+                            return (
+                                subtotal +
+                                (
+                                    Number(
+                                        contribution.amount
+                                    ) || 0
+                                )
+                            );
+
+                        },
+                        0
+                    )
+            );
+
+        },
+        0
+    );
+
+});
+
+
+// --------------------------------------------------
+// Overall Cash Total
+// --------------------------------------------------
+
+const cashTotal = computed(() => {
+
+    return users.value.reduce(
+        (
+            total,
+            user
+        ) => {
+
+            return (
+                total +
+                (
+                    user.contributions || []
+                )
+                    .filter(
+                        contribution =>
+                            (
+                                contribution.collectionType ||
+                                ""
+                            )
+                                .trim()
+                                .toLowerCase() ===
+                            "cash"
+                    )
+                    .reduce(
+                        (
+                            subtotal,
+                            contribution
+                        ) => {
+
+                            return (
+                                subtotal +
+                                (
+                                    Number(
+                                        contribution.amount
+                                    ) || 0
+                                )
+                            );
+
+                        },
+                        0
+                    )
+            );
+
+        },
+        0
+    );
+
+});
+
+
+// --------------------------------------------------
+// Selected User Online Total
+// --------------------------------------------------
+
+const selectedUserOnlineTotal = computed(() => {
+
+    if (!selectedUser.value) {
+        return 0;
+    }
+
+    return (
+        selectedUser.value.contributions || []
+    )
+        .filter(
+            contribution =>
+                (
+                    contribution.collectionType ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase() ===
+                "online"
+        )
+        .reduce(
+            (
+                total,
+                contribution
+            ) => {
+
+                return (
+                    total +
+                    (
+                        Number(
+                            contribution.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+});
+
+
+// --------------------------------------------------
+// Selected User Cash Total
+// --------------------------------------------------
+
+const selectedUserCashTotal = computed(() => {
+
+    if (!selectedUser.value) {
+        return 0;
+    }
+
+    return (
+        selectedUser.value.contributions || []
+    )
+        .filter(
+            contribution =>
+                (
+                    contribution.collectionType ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase() ===
+                "cash"
+        )
+        .reduce(
+            (
+                total,
+                contribution
+            ) => {
+
+                return (
+                    total +
+                    (
+                        Number(
+                            contribution.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+});
+
+
+// --------------------------------------------------
+// Overall Grand Total
+// --------------------------------------------------
+
+const grandTotal = computed(() => {
+
+    return users.value.reduce(
+        (
+            total,
+            user
+        ) => {
+
+            return (
+                total +
+                (
+                    Number(
+                        user.totalContribution
+                    ) || 0
+                )
+            );
+
+        },
+        0
+    );
+
+});
+
+
+// --------------------------------------------------
+// Formatting
+// --------------------------------------------------
+
+const formatAmount = amount => {
+
+    return Number(
+        amount || 0
+    ).toLocaleString(
+        "en-PH",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+
+};
+
+
+const formatDate = date => {
+
+    if (!date) {
+        return "—";
+    }
+
+    return new Intl.DateTimeFormat(
+        "en-PH",
+        {
+            timeZone: "Asia/Manila",
+
+            year: "numeric",
+
+            month: "short",
+
+            day: "numeric"
+        }
+    ).format(
+        new Date(date)
+    );
+
+};
+
+
+const formatDateTime = date => {
+
+    if (!date) {
+        return "—";
+    }
+
+    return new Intl.DateTimeFormat(
+        "en-PH",
+        {
+            timeZone: "Asia/Manila",
+
+            year: "numeric",
+
+            month: "short",
+
+            day: "numeric",
+
+            hour: "numeric",
+
+            minute: "2-digit"
+        }
+    ).format(
+        new Date(date)
+    );
+
+};
+
+
+// --------------------------------------------------
+// Contribution Helpers
+// --------------------------------------------------
+
+const normalizeContributedTo = value => {
+
+    return (
+        value || ""
+    )
+        .trim()
+        .toLowerCase();
+
+};
+
+
+const hasContribution = (
+    user,
+    contributedTo
+) => {
+
+    return (
+        user.contributions || []
+    ).some(
+        contribution => {
+
+            return (
+                normalizeContributedTo(
+                    contribution.contributedTo
+                ) ===
+                normalizeContributedTo(
+                    contributedTo
+                )
+            );
+
+        }
+    );
+
+};
+
+
+const getContributionAmount = (
+    user,
+    contributedTo
+) => {
+
+    return (
+        user.contributions || []
+    )
+        .filter(
+            contribution => {
+
+                return (
+                    normalizeContributedTo(
+                        contribution.contributedTo
+                    ) ===
+                    normalizeContributedTo(
+                        contributedTo
+                    )
+                );
+
+            }
+        )
+        .reduce(
+            (
+                total,
+                contribution
+            ) => {
+
+                return (
+                    total +
+                    (
+                        Number(
+                            contribution.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+};
+
+
+const getContributionCellKey = (
+    userId,
+    contributedTo
+) => {
+
+    return (
+        `${userId}::${normalizeContributedTo(contributedTo)}`
+    );
+
+};
+
+
+const isAmountVisible = (
+    userId,
+    contributedTo
+) => {
+
+    return visibleContributionAmounts.value.has(
+        getContributionCellKey(
+            userId,
+            contributedTo
+        )
+    );
+
+};
+
+
+const toggleContributionAmount = (
+    userId,
+    contributedTo
+) => {
+
+    const key =
+        getContributionCellKey(
+            userId,
+            contributedTo
+        );
+
+    const newSet =
+        new Set(
+            visibleContributionAmounts.value
+        );
+
+    if (
+        newSet.has(key)
+    ) {
+
+        newSet.delete(key);
+
+    } else {
+
+        newSet.add(key);
+
+    }
+
+    visibleContributionAmounts.value =
+        newSet;
+
+};
+
+
+// --------------------------------------------------
+// Overall Contributed To Total
+// --------------------------------------------------
+
+const getContributedToTotal = (
+    contributedTo
+) => {
+
+    return users.value.reduce(
+        (
+            total,
+            user
+        ) => {
+
+            return (
+                total +
+                getContributionAmount(
+                    user,
+                    contributedTo
+                )
+            );
+
+        },
+        0
+    );
+
+};
+
+
+// --------------------------------------------------
+// Overall Contributed To Online Total
+// --------------------------------------------------
+
+const getContributedToOnlineTotal = (
+    contributedTo
+) => {
+
+    return users.value.reduce(
+        (
+            total,
+            user
+        ) => {
+
+            return (
+                total +
+                (
+                    user.contributions || []
+                )
+                    .filter(
+                        contribution => {
+
+                            return (
+                                normalizeContributedTo(
+                                    contribution.contributedTo
+                                ) ===
+                                normalizeContributedTo(
+                                    contributedTo
+                                ) &&
+                                (
+                                    contribution.collectionType ||
+                                    ""
+                                )
+                                    .trim()
+                                    .toLowerCase() ===
+                                "online"
+                            );
+
+                        }
+                    )
+                    .reduce(
+                        (
+                            subtotal,
+                            contribution
+                        ) => {
+
+                            return (
+                                subtotal +
+                                (
+                                    Number(
+                                        contribution.amount
+                                    ) || 0
+                                )
+                            );
+
+                        },
+                        0
+                    )
+            );
+
+        },
+        0
+    );
+
+};
+
+
+// --------------------------------------------------
+// Overall Contributed To Cash Total
+// --------------------------------------------------
+
+const getContributedToCashTotal = (
+    contributedTo
+) => {
+
+    return users.value.reduce(
+        (
+            total,
+            user
+        ) => {
+
+            return (
+                total +
+                (
+                    user.contributions || []
+                )
+                    .filter(
+                        contribution => {
+
+                            return (
+                                normalizeContributedTo(
+                                    contribution.contributedTo
+                                ) ===
+                                normalizeContributedTo(
+                                    contributedTo
+                                ) &&
+                                (
+                                    contribution.collectionType ||
+                                    ""
+                                )
+                                    .trim()
+                                    .toLowerCase() ===
+                                "cash"
+                            );
+
+                        }
+                    )
+                    .reduce(
+                        (
+                            subtotal,
+                            contribution
+                        ) => {
+
+                            return (
+                                subtotal +
+                                (
+                                    Number(
+                                        contribution.amount
+                                    ) || 0
+                                )
+                            );
+
+                        },
+                        0
+                    )
+            );
+
+        },
+        0
+    );
+
+};
+
+
+// --------------------------------------------------
+// Selected User Contributed To Total
+// --------------------------------------------------
+
+const getSelectedUserContributionAmount = (
+    contributedTo
+) => {
+
+    if (!selectedUser.value) {
+        return 0;
+    }
+
+    return (
+        selectedUser.value.contributions || []
+    )
+        .filter(
+            contribution => {
+
+                return (
+                    normalizeContributedTo(
+                        contribution.contributedTo
+                    ) ===
+                    normalizeContributedTo(
+                        contributedTo
+                    )
+                );
+
+            }
+        )
+        .reduce(
+            (
+                total,
+                contribution
+            ) => {
+
+                return (
+                    total +
+                    (
+                        Number(
+                            contribution.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+};
+
+
+// --------------------------------------------------
+// Selected User Contributed To Online Total
+// --------------------------------------------------
+
+const getSelectedUserContributedToOnlineTotal = (
+    contributedTo
+) => {
+
+    if (!selectedUser.value) {
+        return 0;
+    }
+
+    return (
+        selectedUser.value.contributions || []
+    )
+        .filter(
+            contribution => {
+
+                return (
+                    normalizeContributedTo(
+                        contribution.contributedTo
+                    ) ===
+                    normalizeContributedTo(
+                        contributedTo
+                    ) &&
+                    (
+                        contribution.collectionType ||
+                        ""
+                    )
+                        .trim()
+                        .toLowerCase() ===
+                    "online"
+                );
+
+            }
+        )
+        .reduce(
+            (
+                total,
+                contribution
+            ) => {
+
+                return (
+                    total +
+                    (
+                        Number(
+                            contribution.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+};
+
+
+// --------------------------------------------------
+// Selected User Contributed To Cash Total
+// --------------------------------------------------
+
+const getSelectedUserContributedToCashTotal = (
+    contributedTo
+) => {
+
+    if (!selectedUser.value) {
+        return 0;
+    }
+
+    return (
+        selectedUser.value.contributions || []
+    )
+        .filter(
+            contribution => {
+
+                return (
+                    normalizeContributedTo(
+                        contribution.contributedTo
+                    ) ===
+                    normalizeContributedTo(
+                        contributedTo
+                    ) &&
+                    (
+                        contribution.collectionType ||
+                        ""
+                    )
+                        .trim()
+                        .toLowerCase() ===
+                    "cash"
+                );
+
+            }
+        )
+        .reduce(
+            (
+                total,
+                contribution
+            ) => {
+
+                return (
+                    total +
+                    (
+                        Number(
+                            contribution.amount
+                        ) || 0
+                    )
+                );
+
+            },
+            0
+        );
+
+};
+
+
+// --------------------------------------------------
+// DataTable
+// --------------------------------------------------
+
+const destroyDataTable = () => {
+
+    if (dataTable) {
+
+        try {
+
+            dataTable.destroy();
+
+        } catch (error) {
+
+            console.warn(
+                "DataTable destroy warning:",
+                error
+            );
+
+        }
+
+        dataTable = null;
+
+    }
+
+};
+
+
+const initializeDataTable = async () => {
+
+    await nextTick();
+
+    // Always destroy previous instance
+    destroyDataTable();
+
+    if (
+        !usersTable.value ||
+        users.value.length === 0
+    ) {
+
+        return;
+
+    }
+
+    dataTable = new DataTable(
+        usersTable.value,
+        {
+
+            pageLength: 10,
+
+            lengthMenu: [
+                [10, 25, 50, -1],
+                [10, 25, 50, "All"]
+            ],
+
+            order: [
+                [1, "asc"]
+            ],
+
+            language: {
+
+                search:
+                    "Search users:",
+
+                lengthMenu:
+                    "Show _MENU_ users",
+
+                info:
+                    "Showing _START_ to _END_ of _TOTAL_ users",
+
+                infoEmpty:
+                    "No users available",
+
+                zeroRecords:
+                    "No matching users found"
+
+            }
+
+        }
+    );
+
+};
+
+
+// --------------------------------------------------
+// Export Excel
+// --------------------------------------------------
+
+const exportToExcel = () => {
+
+    if (!users.value.length) {
+        return;
+    }
+
+    const rows = [];
+
+    rows.push([
+        "CONTRIBUTION MARKS"
+    ]);
+
+    rows.push([
+        "Date Range",
+        `${appliedStartDate.value || "Beginning"} → ${
+            appliedEndDate.value || "Present"
+        }`
+    ]);
+
+    rows.push([]);
+
+    const headers = [
+        "User ID",
+        "Name"
+    ];
+
+    contributedToColumns.value.forEach(
+        contributedTo => {
+
+            headers.push(
+                contributedTo
+            );
+
+        }
+    );
+
+    headers.push("Total");
+
+    rows.push(headers);
+
+    users.value.forEach(
+        user => {
+
+            const row = [
+                user.userId || "No User ID",
+                user.fullName || "Unknown User"
+            ];
+
+            contributedToColumns.value.forEach(
+                contributedTo => {
+
+                    row.push(
+                        hasContribution(
+                            user,
+                            contributedTo
+                        )
+                            ? "✓"
+                            : ""
+                    );
+
+                }
+            );
+
+            row.push(
+                Number(
+                    user.totalContribution
+                ) || 0
+            );
+
+            rows.push(row);
+
+        }
+    );
+
+
+    // --------------------------------------------------
+    // Grand Total
+    // --------------------------------------------------
+
+    const grandTotalRow = [
+        "",
+        "GRAND TOTAL"
+    ];
+
+    contributedToColumns.value.forEach(
+        contributedTo => {
+
+            grandTotalRow.push(
+                getContributedToTotal(
+                    contributedTo
+                )
+            );
+
+        }
+    );
+
+    grandTotalRow.push(
+        grandTotal.value
+    );
+
+    rows.push([]);
+
+    const grandTotalRowIndex =
+        rows.length;
+
+    rows.push(
+        grandTotalRow
+    );
+
+
+    // --------------------------------------------------
+    // Online Total
+    // --------------------------------------------------
+
+    const onlineTotalRow = [
+        "",
+        "ONLINE TOTAL"
+    ];
+
+    contributedToColumns.value.forEach(
+        contributedTo => {
+
+            onlineTotalRow.push(
+                getContributedToOnlineTotal(
+                    contributedTo
+                )
+            );
+
+        }
+    );
+
+    onlineTotalRow.push(
+        onlineTotal.value
+    );
+
+    const onlineTotalRowIndex =
+        rows.length;
+
+    rows.push(
+        onlineTotalRow
+    );
+
+
+    // --------------------------------------------------
+    // Cash Total
+    // --------------------------------------------------
+
+    const cashTotalRow = [
+        "",
+        "CASH TOTAL"
+    ];
+
+    contributedToColumns.value.forEach(
+        contributedTo => {
+
+            cashTotalRow.push(
+                getContributedToCashTotal(
+                    contributedTo
+                )
+            );
+
+        }
+    );
+
+    cashTotalRow.push(
+        cashTotal.value
+    );
+
+    const cashTotalRowIndex =
+        rows.length;
+
+    rows.push(
+        cashTotalRow
+    );
+
+
+    // --------------------------------------------------
+    // Worksheet
+    // --------------------------------------------------
+
+    const worksheet =
+        XLSX.utils.aoa_to_sheet(
+            rows
+        );
+
+
+    const totalColumns =
+        2 +
+        contributedToColumns.value.length +
+        1;
+
+
+    // --------------------------------------------------
+    // Column Width
+    // --------------------------------------------------
+
+    const columnWidths = [];
+
+    for (
+        let colIndex = 0;
+        colIndex < totalColumns;
+        colIndex++
+    ) {
+
+        let maxLength = 0;
+
+        rows.forEach(
+            row => {
+
+                const value =
+                    row[colIndex] !== undefined &&
+                    row[colIndex] !== null
+                        ? String(
+                            row[colIndex]
+                        )
+                        : "";
+
+                maxLength =
+                    Math.max(
+                        maxLength,
+                        value.length
+                    );
+
+            }
+        );
+
+        columnWidths.push({
+            wch:
+                Math.max(
+                    maxLength + 2,
+                    10
+                )
+        });
+
+    }
+
+    worksheet["!cols"] =
+        columnWidths;
+
+
+    // --------------------------------------------------
+    // Center Checkmarks
+    // --------------------------------------------------
+
+    for (
+        let rowIndex = 4;
+        rowIndex < rows.length;
+        rowIndex++
+    ) {
+
+        for (
+            let colIndex = 2;
+            colIndex < totalColumns - 1;
+            colIndex++
+        ) {
+
+            const cellAddress =
+                XLSX.utils.encode_cell({
+                    r: rowIndex,
+                    c: colIndex
+                });
+
+            if (
+                worksheet[cellAddress] &&
+                worksheet[cellAddress].v === "✓"
+            ) {
+
+                worksheet[cellAddress].s = {
+                    alignment: {
+                        horizontal: "center",
+                        vertical: "center"
+                    }
+                };
+
+            }
+
+        }
+
+    }
+
+
+    // --------------------------------------------------
+    // Format All Total Rows
+    // --------------------------------------------------
+
+    const totalRowIndexes = [
+        grandTotalRowIndex,
+        onlineTotalRowIndex,
+        cashTotalRowIndex
+    ];
+
+    totalRowIndexes.forEach(
+        rowIndex => {
+
+            for (
+                let colIndex = 2;
+                colIndex < totalColumns;
+                colIndex++
+            ) {
+
+                const cellAddress =
+                    XLSX.utils.encode_cell({
+                        r: rowIndex,
+                        c: colIndex
+                    });
+
+                if (
+                    worksheet[cellAddress] &&
+                    typeof worksheet[cellAddress].v === "number"
+                ) {
+
+                    worksheet[cellAddress].z =
+                        '₱#,##0.00';
+
+                }
+
+            }
+
+        }
+    );
+
+
+    // --------------------------------------------------
+    // Workbook
+    // --------------------------------------------------
+
+    const workbook =
+        XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Contribution Marks"
+    );
+
+
+    // --------------------------------------------------
+    // Generate Filename
+    // --------------------------------------------------
+
+    const start =
+        appliedDateRange.value.startDate || "beginning";
+
+    const end =
+        appliedDateRange.value.endDate || "present";
+
+    const filename =
+        `Contribution-Marks-${start}-to-${end}.xlsx`;
+
+
+    // --------------------------------------------------
+    // Create Excel File
+    // --------------------------------------------------
+
+    const excelBuffer =
+        XLSX.write(
+            workbook,
+            {
+                bookType: "xlsx",
+                type: "array"
+            }
+        );
 
-	    users.value.forEach(
-	        user => {
+    const blob =
+        new Blob(
+            [excelBuffer],
+            {
+                type:
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            }
+        );
 
-	            (
-	                user.contributions || []
-	            ).forEach(
-	                contribution => {
 
-	                    if (
-	                        contribution.contributedTo &&
-	                        contribution.contributedTo.trim()
-	                    ) {
+    // --------------------------------------------------
+    // Force Download With Filename
+    // --------------------------------------------------
 
-	                        values.add(
-	                            contribution.contributedTo.trim()
-	                        );
+    const url =
+        URL.createObjectURL(blob);
 
-	                    }
+    const link =
+        document.createElement("a");
 
-	                }
-	            );
+    link.href =
+        url;
 
-	        }
-	    );
+    link.download =
+        filename;
 
-	    return Array.from(values).sort(
-	        (
-	            a,
-	            b
-	        ) =>
-	            a.localeCompare(b)
-	    );
+    document.body.appendChild(
+        link
+    );
 
-	});
+    link.click();
 
+    document.body.removeChild(
+        link
+    );
 
-	const grandTotal = computed(() => {
+    URL.revokeObjectURL(
+        url
+    );
 
-	    return users.value.reduce(
-	        (
-	            total,
-	            user
-	        ) => {
 
-	            return (
-	                total +
-	                (
-	                    Number(
-	                        user.totalContribution
-	                    ) || 0
-	                )
-	            );
+    console.log(
+        "Downloaded filename:",
+        filename
+    );
 
-	        },
-	        0
-	    );
+};
 
-	});
 
+// --------------------------------------------------
+// Get Users
+// --------------------------------------------------
 
-	// --------------------------------------------------
-	// Formatting
-	// --------------------------------------------------
+const getUsers = async () => {
 
-	const formatAmount = amount => {
+    // Validate date range
+    if (
+        startDate.value &&
+        endDate.value &&
+        startDate.value > endDate.value
+    ) {
 
-	    return Number(
-	        amount || 0
-	    ).toLocaleString(
-	        "en-PH",
-	        {
-	            minimumFractionDigits: 2,
-	            maximumFractionDigits: 2
-	        }
-	    );
+        errorMessage.value =
+            "Start date cannot be later than end date.";
 
-	};
+        return;
 
+    }
 
-	const formatDate = date => {
 
-	    if (!date) {
-	        return "—";
-	    }
+    loading.value = true;
 
-	    return new Intl.DateTimeFormat(
-	        "en-PH",
-	        {
-	            timeZone: "Asia/Manila",
+    errorMessage.value = "";
 
-	            year: "numeric",
 
-	            month: "short",
+    try {
 
-	            day: "numeric"
-	        }
-	    ).format(
-	        new Date(date)
-	    );
+        const params = {};
 
-	};
 
+        // Start date
+        if (startDate.value) {
 
-	const formatDateTime = date => {
+            params.startDate =
+                startDate.value;
 
-	    if (!date) {
-	        return "—";
-	    }
+        }
 
-	    return new Intl.DateTimeFormat(
-	        "en-PH",
-	        {
-	            timeZone: "Asia/Manila",
 
-	            year: "numeric",
+        // End date
+        if (endDate.value) {
 
-	            month: "short",
+            params.endDate =
+                endDate.value;
 
-	            day: "numeric",
+        }
 
-	            hour: "numeric",
 
-	            minute: "2-digit"
-	        }
-	    ).format(
-	        new Date(date)
-	    );
+        // Destroy DataTable before Vue changes table
+        destroyDataTable();
 
-	};
 
+        const response =
+            await api.get(
+                "/contributions/users",
+                {
+                    params
+                }
+            );
 
-	// --------------------------------------------------
-	// Contribution Helpers
-	// --------------------------------------------------
 
-	const normalizeContributedTo = value => {
+        users.value =
+            response.data || [];
 
-	    return (
-	        value || ""
-	    )
-	        .trim()
-	        .toLowerCase();
 
-	};
+        // Save the exact date range used for this request
+        appliedDateRange.value = {
+            startDate: params.startDate || "",
+            endDate: params.endDate || ""
+        };
 
 
-	const hasContribution = (
-	    user,
-	    contributedTo
-	) => {
+        // Reset selected user
+        selectedUser.value = null;
 
-	    return (
-	        user.contributions || []
-	    ).some(
-	        contribution => {
 
-	            return (
-	                normalizeContributedTo(
-	                    contribution.contributedTo
-	                ) ===
-	                normalizeContributedTo(
-	                    contributedTo
-	                )
-	            );
+        // Reset visible contribution amounts
+        visibleContributionAmounts.value =
+            new Set();
 
-	        }
-	    );
 
-	};
+        // Rebuild DataTable
+        await initializeDataTable();
 
+    } catch (error) {
 
-	const getContributionAmount = (
-	    user,
-	    contributedTo
-	) => {
+        console.error(
+            "Get users with contributions error:",
+            error
+        );
 
-	    return (
-	        user.contributions || []
-	    )
-	        .filter(
-	            contribution => {
+        errorMessage.value =
+            error?.response?.data?.message ||
+            "Failed to retrieve users and contributions.";
 
-	                return (
-	                    normalizeContributedTo(
-	                        contribution.contributedTo
-	                    ) ===
-	                    normalizeContributedTo(
-	                        contributedTo
-	                    )
-	                );
+    } finally {
 
-	            }
-	        )
-	        .reduce(
-	            (
-	                total,
-	                contribution
-	            ) => {
+        loading.value = false;
 
-	                return (
-	                    total +
-	                    (
-	                        Number(
-	                            contribution.amount
-	                        ) || 0
-	                    )
-	                );
+    }
 
-	            },
-	            0
-	        );
+};
 
-	};
 
+// --------------------------------------------------
+// Clear Date Range
+// --------------------------------------------------
 
-	const getContributionCellKey = (
-	    userId,
-	    contributedTo
-	) => {
+const clearDateRange = async () => {
 
-	    return (
-	        `${userId}::${normalizeContributedTo(contributedTo)}`
-	    );
+    startDate.value = "";
 
-	};
+    endDate.value = "";
 
+    await getUsers();
 
-	const isAmountVisible = (
-	    userId,
-	    contributedTo
-	) => {
+};
 
-	    return visibleContributionAmounts.value.has(
-	        getContributionCellKey(
-	            userId,
-	            contributedTo
-	        )
-	    );
 
-	};
+// --------------------------------------------------
+// User Modal
+// --------------------------------------------------
 
+const viewUser = user => {
 
-	const toggleContributionAmount = (
-	    userId,
-	    contributedTo
-	) => {
+    selectedUser.value =
+        user;
 
-	    const key =
-	        getContributionCellKey(
-	            userId,
-	            contributedTo
-	        );
+};
 
-	    const newSet =
-	        new Set(
-	            visibleContributionAmounts.value
-	        );
 
-	    if (
-	        newSet.has(key)
-	    ) {
+const closeUserModal = () => {
 
-	        newSet.delete(key);
+    selectedUser.value =
+        null;
 
-	    } else {
+};
 
-	        newSet.add(key);
 
-	    }
+// --------------------------------------------------
+// Initial Load
+// --------------------------------------------------
 
-	    visibleContributionAmounts.value =
-	        newSet;
+onMounted(() => {
 
-	};
+    getUsers();
 
-
-	const getContributedToTotal = (
-	    contributedTo
-	) => {
-
-	    return users.value.reduce(
-	        (
-	            total,
-	            user
-	        ) => {
-
-	            return (
-	                total +
-	                getContributionAmount(
-	                    user,
-	                    contributedTo
-	                )
-	            );
-
-	        },
-	        0
-	    );
-
-	};
-
-
-	// --------------------------------------------------
-	// DataTable
-	// --------------------------------------------------
-
-	const destroyDataTable = () => {
-
-	    if (dataTable) {
-
-	        try {
-
-	            dataTable.destroy();
-
-	        } catch (error) {
-
-	            console.warn(
-	                "DataTable destroy warning:",
-	                error
-	            );
-
-	        }
-
-	        dataTable = null;
-
-	    }
-
-	};
-
-
-	const initializeDataTable = async () => {
-
-	    await nextTick();
-
-	    // Always destroy previous instance
-	    destroyDataTable();
-
-	    if (
-	        !usersTable.value ||
-	        users.value.length === 0
-	    ) {
-
-	        return;
-
-	    }
-
-	    dataTable = new DataTable(
-	        usersTable.value,
-	        {
-
-	            pageLength: 10,
-
-	            lengthMenu: [
-	                [10, 25, 50, -1],
-	                [10, 25, 50, "All"]
-	            ],
-
-	            order: [
-	                [1, "asc"]
-	            ],
-
-	            language: {
-
-	                search:
-	                    "Search users:",
-
-	                lengthMenu:
-	                    "Show _MENU_ users",
-
-	                info:
-	                    "Showing _START_ to _END_ of _TOTAL_ users",
-
-	                infoEmpty:
-	                    "No users available",
-
-	                zeroRecords:
-	                    "No matching users found"
-
-	            }
-
-	        }
-	    );
-
-	};
-
-
-
-
-	// --------------------------------------------------
-	// Export Excel
-	// --------------------------------------------------
-
-	const exportToExcel = () => {
-
-	    if (!users.value.length) {
-	        return;
-	    }
-
-	    const rows = [];
-
-	    rows.push([
-	        "CONTRIBUTION MARKS"
-	    ]);
-
-	    rows.push([
-	        "Date Range",
-	        `${appliedStartDate.value || "Beginning"} → ${
-	            appliedEndDate.value || "Present"
-	        }`
-	    ]);
-
-	    rows.push([]);
-
-	    const headers = [
-	        "User ID",
-	        "Name"
-	    ];
-
-	    contributedToColumns.value.forEach(
-	        contributedTo => {
-
-	            headers.push(
-	                contributedTo
-	            );
-
-	        }
-	    );
-
-	    headers.push("Total");
-
-	    rows.push(headers);
-
-	    users.value.forEach(
-	        user => {
-
-	            const row = [
-	                user.userId || "No User ID",
-	                user.fullName || "Unknown User"
-	            ];
-
-	            contributedToColumns.value.forEach(
-	                contributedTo => {
-
-	                    row.push(
-	                        hasContribution(
-	                            user,
-	                            contributedTo
-	                        )
-	                            ? "✓"
-	                            : ""
-	                    );
-
-	                }
-	            );
-
-	            row.push(
-	                Number(
-	                    user.totalContribution
-	                ) || 0
-	            );
-
-	            rows.push(row);
-
-	        }
-	    );
-
-	    const grandTotalRow = [
-	        "",
-	        "GRAND TOTAL"
-	    ];
-
-	    contributedToColumns.value.forEach(
-	        contributedTo => {
-
-	            grandTotalRow.push(
-	                getContributedToTotal(
-	                    contributedTo
-	                )
-	            );
-
-	        }
-	    );
-
-	    grandTotalRow.push(
-	        grandTotal.value
-	    );
-
-	    rows.push([]);
-	    rows.push(grandTotalRow);
-
-
-	    // --------------------------------------------------
-	    // Worksheet
-	    // --------------------------------------------------
-
-	    const worksheet =
-	        XLSX.utils.aoa_to_sheet(
-	            rows
-	        );
-
-
-	    const totalColumns =
-	        2 +
-	        contributedToColumns.value.length +
-	        1;
-
-
-	    // --------------------------------------------------
-	    // Column Width
-	    // --------------------------------------------------
-
-	    const columnWidths = [];
-
-	    for (
-	        let colIndex = 0;
-	        colIndex < totalColumns;
-	        colIndex++
-	    ) {
-
-	        let maxLength = 0;
-
-	        rows.forEach(
-	            row => {
-
-	                const value =
-	                    row[colIndex] !== undefined &&
-	                    row[colIndex] !== null
-	                        ? String(
-	                            row[colIndex]
-	                        )
-	                        : "";
-
-	                maxLength =
-	                    Math.max(
-	                        maxLength,
-	                        value.length
-	                    );
-
-	            }
-	        );
-
-	        columnWidths.push({
-	            wch:
-	                Math.max(
-	                    maxLength + 2,
-	                    10
-	                )
-	        });
-
-	    }
-
-	    worksheet["!cols"] =
-	        columnWidths;
-
-
-	    // --------------------------------------------------
-	    // Center Checkmarks
-	    // --------------------------------------------------
-
-	    for (
-	        let rowIndex = 4;
-	        rowIndex < rows.length;
-	        rowIndex++
-	    ) {
-
-	        for (
-	            let colIndex = 2;
-	            colIndex < totalColumns - 1;
-	            colIndex++
-	        ) {
-
-	            const cellAddress =
-	                XLSX.utils.encode_cell({
-	                    r: rowIndex,
-	                    c: colIndex
-	                });
-
-	            if (
-	                worksheet[cellAddress] &&
-	                worksheet[cellAddress].v === "✓"
-	            ) {
-
-	                worksheet[cellAddress].s = {
-	                    alignment: {
-	                        horizontal: "center",
-	                        vertical: "center"
-	                    }
-	                };
-
-	            }
-
-	        }
-
-	    }
-
-
-	    // --------------------------------------------------
-	    // Format Total Column
-	    // --------------------------------------------------
-
-	    for (
-	        let rowIndex = 4;
-	        rowIndex < rows.length;
-	        rowIndex++
-	    ) {
-
-	        const cellAddress =
-	            XLSX.utils.encode_cell({
-	                r: rowIndex,
-	                c: totalColumns - 1
-	            });
-
-	        if (
-	            worksheet[cellAddress] &&
-	            typeof worksheet[cellAddress].v === "number"
-	        ) {
-
-	            worksheet[cellAddress].z =
-	                '₱#,##0.00';
-
-	        }
-
-	    }
-
-
-	    // --------------------------------------------------
-	    // Format Grand Total
-	    // --------------------------------------------------
-
-	    const grandTotalRowIndex =
-	        rows.length - 1;
-
-	    for (
-	        let colIndex = 2;
-	        colIndex < totalColumns;
-	        colIndex++
-	    ) {
-
-	        const cellAddress =
-	            XLSX.utils.encode_cell({
-	                r: grandTotalRowIndex,
-	                c: colIndex
-	            });
-
-	        if (
-	            worksheet[cellAddress] &&
-	            typeof worksheet[cellAddress].v === "number"
-	        ) {
-
-	            worksheet[cellAddress].z =
-	                '₱#,##0.00';
-
-	        }
-
-	    }
-
-
-	    // --------------------------------------------------
-	    // Workbook
-	    // --------------------------------------------------
-
-	    const workbook =
-	        XLSX.utils.book_new();
-
-	    XLSX.utils.book_append_sheet(
-	        workbook,
-	        worksheet,
-	        "Contribution Marks"
-	    );
-
-
-	    // --------------------------------------------------
-	    // Generate Filename
-	    // --------------------------------------------------
-
-	    const start =
-	        appliedDateRange.value.startDate || "beginning";
-
-	    const end =
-	        appliedDateRange.value.endDate || "present";
-
-	    const filename =
-	        `Contribution-Marks-${start}-to-${end}.xlsx`;
-
-
-	    // --------------------------------------------------
-	    // Create Excel File
-	    // --------------------------------------------------
-
-	    const excelBuffer =
-	        XLSX.write(
-	            workbook,
-	            {
-	                bookType: "xlsx",
-	                type: "array"
-	            }
-	        );
-
-	    const blob =
-	        new Blob(
-	            [excelBuffer],
-	            {
-	                type:
-	                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-	            }
-	        );
-
-
-	    // --------------------------------------------------
-	    // Force Download With Filename
-	    // --------------------------------------------------
-
-	    const url =
-	        URL.createObjectURL(blob);
-
-	    const link =
-	        document.createElement("a");
-
-	    link.href =
-	        url;
-
-	    link.download =
-	        filename;
-
-	    document.body.appendChild(
-	        link
-	    );
-
-	    link.click();
-
-	    document.body.removeChild(
-	        link
-	    );
-
-	    URL.revokeObjectURL(
-	        url
-	    );
-
-
-	    console.log(
-	        "Downloaded filename:",
-	        filename
-	    );
-
-	};
-
-	//--------------------------------------------
-
-	const getUsers = async () => {
-
-	    // Validate date range
-	    if (
-	        startDate.value &&
-	        endDate.value &&
-	        startDate.value > endDate.value
-	    ) {
-
-	        errorMessage.value =
-	            "Start date cannot be later than end date.";
-
-	        return;
-
-	    }
-
-
-	    loading.value = true;
-
-	    errorMessage.value = "";
-
-
-	    try {
-
-	        const params = {};
-
-
-	        // Start date
-	        if (startDate.value) {
-
-	            params.startDate =
-	                startDate.value;
-
-	        }
-
-
-	        // End date
-	        if (endDate.value) {
-
-	            params.endDate =
-	                endDate.value;
-
-	        }
-
-
-	        // Destroy DataTable before Vue changes table
-	        destroyDataTable();
-
-
-	        const response =
-	            await api.get(
-	                "/contributions/users",
-	                {
-	                    params
-	                }
-	            );
-
-
-	        users.value =
-	            response.data || [];
-
-
-	        // Save the exact date range used for this request
-	        appliedDateRange.value = {
-	            startDate: params.startDate || "",
-	            endDate: params.endDate || ""
-	        };
-
-
-	        // Reset selected user
-	        selectedUser.value = null;
-
-
-	        // Reset visible contribution amounts
-	        visibleContributionAmounts.value =
-	            new Set();
-
-
-	        // Rebuild DataTable
-	        await initializeDataTable();
-
-	    } catch (error) {
-
-	        console.error(
-	            "Get users with contributions error:",
-	            error
-	        );
-
-	        errorMessage.value =
-	            error?.response?.data?.message ||
-	            "Failed to retrieve users and contributions.";
-
-	    } finally {
-
-	        loading.value = false;
-
-	    }
-
-	};
-
-
-	// --------------------------------------------------
-	// Clear Date Range
-	// --------------------------------------------------
-
-	const clearDateRange = async () => {
-
-	    startDate.value = "";
-
-	    endDate.value = "";
-
-	    await getUsers();
-
-	};
-
-
-	// --------------------------------------------------
-	// User Modal
-	// --------------------------------------------------
-
-	const viewUser = user => {
-
-	    selectedUser.value =
-	        user;
-
-	};
-
-
-	const closeUserModal = () => {
-
-	    selectedUser.value =
-	        null;
-
-	};
-
-
-	// --------------------------------------------------
-	// Initial Load
-	// --------------------------------------------------
-
-	onMounted(() => {
-
-	    getUsers();
-
-	});
+});
 
 </script>
 
@@ -2050,27 +2830,20 @@
 ========================= */
 
 .btn {
-
     font-weight:
         600;
-
     border-radius:
         7px;
-
 }
 
 
 .btn-danger {
-
     color:
         #263238;
-
     background:
         #f4c95d;
-
     border-color:
         #f4c95d;
-
 }
 
 
@@ -2462,24 +3235,18 @@
 @media (max-width: 767.98px) {
 
     .contribution-page {
-
         padding:
             35px 15px;
-
     }
-
 
     .contribution-page
     > .container {
-
         width:
             100%;
-
     }
 
 
     /* Header */
-
     .contribution-page
     .d-flex.justify-content-between {
 
@@ -2587,4 +3354,3 @@
 }
 
 </style>
-

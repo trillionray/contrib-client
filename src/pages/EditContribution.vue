@@ -60,7 +60,7 @@
 
       <!-- =========================
            Loading
-      ========================== -->
+      ========================= -->
 
       <div
         v-if="isLoading"
@@ -82,7 +82,7 @@
 
       <!-- =========================
            Form
-      ========================== -->
+      ========================= -->
 
       <div
         v-else
@@ -128,6 +128,50 @@
                   ></option>
 
                 </datalist>
+
+              </div>
+
+
+              <!-- =========================
+                   CR Number
+              ========================== -->
+
+              <div class="col-md-6">
+
+                <label class="form-label fw-semibold">
+                  CR Number
+                </label>
+
+
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="form.crNumber"
+                  placeholder="Enter CR number"
+                />
+
+              </div>
+
+
+              <!-- =========================
+                   Number Of Participants
+              ========================== -->
+
+              <div class="col-md-6">
+
+                <label class="form-label fw-semibold">
+                  Number of Participants
+                </label>
+
+
+                <input
+                  type="number"
+                  class="form-control"
+                  v-model="form.numberOfParticipants"
+                  min="0"
+                  step="1"
+                  placeholder="Enter number of participants"
+                />
 
               </div>
 
@@ -398,6 +442,12 @@ const form =
   ref({
 
     user:
+      "",
+
+    crNumber:
+      "",
+
+    numberOfParticipants:
       "",
 
     date:
@@ -736,7 +786,14 @@ const getContribution = async () => {
             )
           : "",
 
-      // Use the new editable contribution date
+      crNumber:
+        contribution.crNumber ??
+        "",
+
+      numberOfParticipants:
+        contribution.numberOfParticipants ??
+        "",
+
       date:
         formatDateForInput(
           contribution.date
@@ -838,6 +895,33 @@ const updateContribution = async () => {
 
 
   // =========================
+  // Validate Participants
+  // =========================
+
+  if (
+    form.value.numberOfParticipants !== "" &&
+    (
+      Number(
+        form.value.numberOfParticipants
+      ) < 0 ||
+      !Number.isInteger(
+        Number(
+          form.value.numberOfParticipants
+        )
+      )
+    )
+  ) {
+
+    notyf.error(
+      "Please enter a valid number of participants."
+    );
+
+    return;
+
+  }
+
+
+  // =========================
   // Validate Amount
   // =========================
 
@@ -868,7 +952,17 @@ const updateContribution = async () => {
       user:
         selectedUser._id,
 
-      // Use the new editable contribution date
+      crNumber:
+        form.value.crNumber
+          .trim(),
+
+      numberOfParticipants:
+        form.value.numberOfParticipants === ""
+          ? 0
+          : Number(
+              form.value.numberOfParticipants
+            ),
+
       date:
         form.value.date,
 

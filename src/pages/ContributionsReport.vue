@@ -22,7 +22,6 @@
 
         </div>
 
-
         <div class="d-flex gap-2">
 
           <router-link
@@ -31,7 +30,6 @@
           >
             Contributions
           </router-link>
-
 
           <router-link
             to="/contributions/add"
@@ -53,9 +51,7 @@
         v-if="errorMessage"
         class="alert alert-danger"
       >
-
         {{ errorMessage }}
-
       </div>
 
 
@@ -70,7 +66,6 @@
           <h5 class="fw-bold mb-3">
             Report Filters
           </h5>
-
 
           <form @submit.prevent="createReport">
 
@@ -124,7 +119,6 @@
 
                 </label>
 
-
                 <input
                   type="text"
                   class="form-control"
@@ -133,7 +127,6 @@
                   placeholder="Search contributor..."
                   autocomplete="off"
                 />
-
 
                 <datalist id="user-options">
 
@@ -162,7 +155,6 @@
 
                 </label>
 
-
                 <input
                   type="text"
                   class="form-control"
@@ -188,7 +180,6 @@
 
                 </label>
 
-
                 <input
                   type="text"
                   class="form-control"
@@ -197,7 +188,6 @@
                   placeholder="Search contribution..."
                   autocomplete="off"
                 />
-
 
                 <datalist id="contributed-to-options">
 
@@ -226,7 +216,6 @@
 
                 </label>
 
-
                 <input
                   type="text"
                   class="form-control"
@@ -235,7 +224,6 @@
                   placeholder="Search collection type..."
                   autocomplete="off"
                 />
-
 
                 <datalist id="collection-type-options">
 
@@ -263,7 +251,6 @@
                   </small>
 
                 </label>
-
 
                 <select
                   class="form-select"
@@ -316,7 +303,6 @@
                   class="spinner-border spinner-border-sm me-2"
                   role="status"
                 ></span>
-
 
                 {{
                   isLoading
@@ -376,9 +362,7 @@
               </div>
 
               <div class="summary-value total">
-
                 ₱{{ formatAmount(reportTotal) }}
-
               </div>
 
             </div>
@@ -417,7 +401,6 @@
 
             </div>
 
-
             <div class="d-flex gap-2">
 
               <button
@@ -433,15 +416,12 @@
 
               </button>
 
-
               <button
                 type="button"
                 class="btn btn-sm btn-outline-secondary"
                 @click="resetColumns"
               >
-
                 Reset
-
               </button>
 
             </div>
@@ -478,7 +458,6 @@
                   @change="toggleColumn(column.key)"
                 />
 
-
                 <label
                   :for="`column-${column.key}`"
                   class="form-check-label"
@@ -486,24 +465,18 @@
 
                   {{ column.label }}
 
-
                   <small
                     v-if="isGroupingColumn(column.key)"
                     class="text-muted"
                   >
-
                     (Group)
-
                   </small>
-
 
                   <small
                     v-else-if="isRequiredColumn(column.key)"
                     class="text-muted"
                   >
-
                     (Required)
-
                   </small>
 
                 </label>
@@ -523,6 +496,8 @@
             Amount is required when no grouping is selected.
             When grouped, Total Cash, Total Online, and Total Amount
             are included automatically.
+            If all detail columns are unchecked while grouped,
+            each group is displayed as one summary row.
 
           </div>
 
@@ -554,9 +529,7 @@
               style="width: 100%;"
             >
 
-              <!-- =========================
-                   Header
-              ========================== -->
+              <!-- Header -->
 
               <thead>
 
@@ -583,9 +556,7 @@
               </thead>
 
 
-              <!-- =========================
-                   Body
-              ========================== -->
+              <!-- Body -->
 
               <tbody>
 
@@ -615,9 +586,7 @@
                       "
                     >
 
-                      <template
-                        v-if="column.key === 'date'"
-                      >
+                      <template v-if="column.key === 'date'">
 
                         <span class="fw-semibold">
                           {{ formatDate(item.date) }}
@@ -625,35 +594,25 @@
 
                       </template>
 
-
                       <template
-                        v-else-if="
-                          column.key === 'contributor'
-                        "
+                        v-else-if="column.key === 'contributor'"
                       >
 
                         <div class="fw-semibold">
-
                           {{
                             item.user?.fullName ||
                             "Unknown User"
                           }}
-
                         </div>
-
 
                         <small
                           v-if="item.user?.userId"
                           class="text-muted"
                         >
-
-                          ID:
-                          {{ item.user.userId }}
-
+                          ID: {{ item.user.userId }}
                         </small>
 
                       </template>
-
 
                       <template
                         v-else-if="
@@ -662,44 +621,34 @@
                       >
 
                         <span class="fw-semibold">
-
                           {{
                             Number(
                               item.numberOfParticipants
                             ) || 1
                           }}
-
                         </span>
 
                       </template>
 
-
                       <template
-                        v-else-if="
-                          column.key === 'crNumber'
-                        "
+                        v-else-if="column.key === 'crNumber'"
                       >
 
                         <span
                           v-if="item.crNumber"
                           class="cr-number"
                         >
-
                           {{ item.crNumber }}
-
                         </span>
 
                         <span
                           v-else
                           class="text-muted"
                         >
-
                           —
-
                         </span>
 
                       </template>
-
 
                       <template
                         v-else-if="
@@ -713,7 +662,6 @@
 
                       </template>
 
-
                       <template
                         v-else-if="
                           column.key === 'collectionType'
@@ -725,7 +673,6 @@
                         </span>
 
                       </template>
-
 
                       <template
                         v-else-if="
@@ -739,17 +686,12 @@
 
                       </template>
 
-
                       <template
-                        v-else-if="
-                          column.key === 'amount'
-                        "
+                        v-else-if="column.key === 'amount'"
                       >
 
                         <span class="amount">
-
                           ₱{{ formatAmount(item.amount) }}
-
                         </span>
 
                       </template>
@@ -767,22 +709,21 @@
 
                 <template v-else>
 
-                  <template
-                    v-for="group in groupedContributions"
-                    :key="group.key"
-                  >
+                  <!-- =================================================
+                       SUMMARY ONLY MODE
 
-                    <!-- Contribution rows -->
+                       IMPORTANT:
+                       There is NO group.contributions loop here.
+
+                       One row = one group.
+                  ================================================== -->
+
+                  <template v-if="groupedSummaryOnly">
 
                     <tr
-                      v-for="(
-                        contribution,
-                        index
-                      ) in group.contributions"
-                      :key="
-                        `${group.key}-${contribution._id || index}`
-                      "
-                      class="group-contribution-row"
+                      v-for="group in groupedContributions"
+                      :key="`summary-${group.key}`"
+                      class="group-summary-row"
                     >
 
                       <td
@@ -790,236 +731,83 @@
                         :key="column.key"
                         :class="{
                           'text-end':
-                            column.key === 'amount' ||
                             column.key === 'totalCash' ||
                             column.key === 'totalOnline' ||
                             column.key === 'totalAmount'
                         }"
-                        :data-order="
-                          getContributionCellOrder(
-                            contribution,
-                            column.key
-                          )
-                        "
                       >
 
-                        <!-- Date -->
+                        <!-- Grouping Column -->
 
                         <template
-                          v-if="column.key === 'date'"
-                        >
-
-                          <div class="fw-semibold">
-                            {{ formatDate(contribution.date) }}
-                          </div>
-
-                        </template>
-
-
-                        <!-- Contributor -->
-
-                        <template
-                          v-else-if="
-                            column.key === 'contributor'
+                          v-if="
+                            groupingColumns.includes(
+                              column.key
+                            )
                           "
                         >
 
-                          <div class="fw-semibold">
+                          <!-- Date -->
 
-                            {{
-                              contribution.user?.fullName ||
-                              "Unknown User"
-                            }}
+                          <template
+                            v-if="column.key === 'date'"
+                          >
 
-                          </div>
+                            <div class="fw-semibold">
+                              {{ formatDate(group.date) }}
+                            </div>
+
+                          </template>
 
 
-                          <small
-                            v-if="
-                              contribution.user?.userId
+                          <!-- Contributor -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'contributor'
                             "
-                            class="text-muted"
                           >
 
-                            ID:
-                            {{ contribution.user.userId }}
+                            <div class="fw-semibold">
 
-                          </small>
+                              {{
+                                group.user?.fullName ||
+                                group.groupLabel ||
+                                "Unknown User"
+                              }}
 
-                        </template>
+                            </div>
 
+                            <small
+                              v-if="group.user?.userId"
+                              class="text-muted"
+                            >
 
-                        <!-- Participants -->
+                              ID:
+                              {{ group.user.userId }}
 
-                        <template
-                          v-else-if="
-                            column.key ===
-                            'numberOfParticipants'
-                          "
-                        >
+                            </small>
 
-                          <span class="fw-semibold">
-
-                            {{
-                              Number(
-                                contribution.numberOfParticipants
-                              ) || 1
-                            }}
-
-                          </span>
-
-                        </template>
+                          </template>
 
 
-                        <!-- CR -->
+                          <!-- Other grouping columns -->
 
-                        <template
-                          v-else-if="
-                            column.key === 'crNumber'
-                          "
-                        >
+                          <template v-else>
 
-                          <span
-                            v-if="contribution.crNumber"
-                            class="cr-number"
-                          >
+                            <span class="fw-semibold">
+                              {{
+                                group.groupLabel ||
+                                "Unknown"
+                              }}
+                            </span>
 
-                            {{ contribution.crNumber }}
-
-                          </span>
-
-                          <span
-                            v-else
-                            class="text-muted"
-                          >
-
-                            —
-
-                          </span>
+                          </template>
 
                         </template>
 
 
-                        <!-- Contributed To -->
-
-                        <template
-                          v-else-if="
-                            column.key === 'contributedTo'
-                          "
-                        >
-
-                          <span class="fw-semibold">
-
-                            {{
-                              contribution.contributedTo
-                            }}
-
-                          </span>
-
-                        </template>
-
-
-                        <!-- Collection Type -->
-
-                        <template
-                          v-else-if="
-                            column.key === 'collectionType'
-                          "
-                        >
-
-                          <span class="collection-type">
-
-                            {{
-                              contribution.collectionType
-                            }}
-
-                          </span>
-
-                        </template>
-
-
-                        <!-- Description -->
-
-                        <template
-                          v-else-if="
-                            column.key === 'description'
-                          "
-                        >
-
-                          <div class="contribution-description">
-
-                            {{
-                              contribution.description
-                            }}
-
-                          </div>
-
-                        </template>
-
-
-                        <!-- Amount -->
-
-                        <template
-                          v-else-if="
-                            column.key === 'amount'
-                          "
-                        >
-
-                          <span class="amount">
-
-                            ₱{{ formatAmount(
-                              contribution.amount
-                            ) }}
-
-                          </span>
-
-                        </template>
-
-
-                        <!-- Summary columns -->
-
-                        <template v-else>
-
-                          <span class="text-muted">
-                            —
-                          </span>
-
-                        </template>
-
-                      </td>
-
-                    </tr>
-
-
-                    <!-- =========================
-                         Group Total
-                    ========================== -->
-
-                    <tr class="group-total-row">
-
-                      <td
-                        v-for="(column, index) in visibleColumns"
-                        :key="column.key"
-                        :class="{
-                          'text-end':
-                            column.key === 'totalCash' ||
-                            column.key === 'totalOnline' ||
-                            column.key === 'totalAmount'
-                        }"
-                      >
-
-                        <!-- Label -->
-
-                        <template v-if="index === 0">
-
-                          <strong>
-                            Group Total
-                          </strong>
-
-                        </template>
-
-
-                        <!-- Cash -->
+                        <!-- Total Cash -->
 
                         <template
                           v-else-if="
@@ -1028,17 +816,13 @@
                         >
 
                           <span class="group-total-value">
-
-                            ₱{{ formatAmount(
-                              group.cashTotal
-                            ) }}
-
+                            ₱{{ formatAmount(group.cashTotal) }}
                           </span>
 
                         </template>
 
 
-                        <!-- Online -->
+                        <!-- Total Online -->
 
                         <template
                           v-else-if="
@@ -1047,17 +831,13 @@
                         >
 
                           <span class="group-total-value">
-
-                            ₱{{ formatAmount(
-                              group.onlineTotal
-                            ) }}
-
+                            ₱{{ formatAmount(group.onlineTotal) }}
                           </span>
 
                         </template>
 
 
-                        <!-- Total -->
+                        <!-- Total Amount -->
 
                         <template
                           v-else-if="
@@ -1068,20 +848,7 @@
                           <span
                             class="group-total-value grand-group-total"
                           >
-
-                            ₱{{ formatAmount(
-                              group.totalAmount
-                            ) }}
-
-                          </span>
-
-                        </template>
-
-
-                        <template v-else>
-
-                          <span>
-                            &nbsp;
+                            ₱{{ formatAmount(group.totalAmount) }}
                           </span>
 
                         </template>
@@ -1089,6 +856,298 @@
                       </td>
 
                     </tr>
+
+                  </template>
+
+
+                  <!-- =================================================
+                       NORMAL GROUPED DETAIL MODE
+
+                       Only used when at least one detail column
+                       remains selected.
+                  ================================================== -->
+
+                  <template v-else>
+
+                    <template
+                      v-for="group in groupedContributions"
+                      :key="group.key"
+                    >
+
+                      <!-- Contribution rows -->
+
+                      <tr
+                        v-for="(
+                          contribution,
+                          index
+                        ) in group.contributions"
+                        :key="
+                          `${group.key}-${contribution._id || index}`
+                        "
+                        class="group-contribution-row"
+                      >
+
+                        <td
+                          v-for="column in visibleColumns"
+                          :key="column.key"
+                          :class="{
+                            'text-end':
+                              column.key === 'amount' ||
+                              column.key === 'totalCash' ||
+                              column.key === 'totalOnline' ||
+                              column.key === 'totalAmount'
+                          }"
+                          :data-order="
+                            getContributionCellOrder(
+                              contribution,
+                              column.key
+                            )
+                          "
+                        >
+
+                          <!-- Date -->
+
+                          <template
+                            v-if="column.key === 'date'"
+                          >
+
+                            <div class="fw-semibold">
+                              {{ formatDate(contribution.date) }}
+                            </div>
+
+                          </template>
+
+
+                          <!-- Contributor -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'contributor'
+                            "
+                          >
+
+                            <div class="fw-semibold">
+
+                              {{
+                                contribution.user?.fullName ||
+                                "Unknown User"
+                              }}
+
+                            </div>
+
+                            <small
+                              v-if="
+                                contribution.user?.userId
+                              "
+                              class="text-muted"
+                            >
+
+                              ID:
+                              {{ contribution.user.userId }}
+
+                            </small>
+
+                          </template>
+
+
+                          <!-- Participants -->
+
+                          <template
+                            v-else-if="
+                              column.key ===
+                              'numberOfParticipants'
+                            "
+                          >
+
+                            <span class="fw-semibold">
+
+                              {{
+                                Number(
+                                  contribution.numberOfParticipants
+                                ) || 1
+                              }}
+
+                            </span>
+
+                          </template>
+
+
+                          <!-- CR -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'crNumber'
+                            "
+                          >
+
+                            <span
+                              v-if="contribution.crNumber"
+                              class="cr-number"
+                            >
+                              {{ contribution.crNumber }}
+                            </span>
+
+                            <span
+                              v-else
+                              class="text-muted"
+                            >
+                              —
+                            </span>
+
+                          </template>
+
+
+                          <!-- Contributed To -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'contributedTo'
+                            "
+                          >
+
+                            <span class="fw-semibold">
+                              {{ contribution.contributedTo }}
+                            </span>
+
+                          </template>
+
+
+                          <!-- Collection Type -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'collectionType'
+                            "
+                          >
+
+                            <span class="collection-type">
+                              {{ contribution.collectionType }}
+                            </span>
+
+                          </template>
+
+
+                          <!-- Description -->
+
+                          <template
+                            v-else-if="
+                              column.key === 'description'
+                            "
+                          >
+
+                            <div class="contribution-description">
+                              {{ contribution.description }}
+                            </div>
+
+                          </template>
+
+
+                          <!-- Amount -->
+
+                          <template
+                            v-else-if="column.key === 'amount'"
+                          >
+
+                            <span class="amount">
+                              ₱{{ formatAmount(contribution.amount) }}
+                            </span>
+
+                          </template>
+
+
+                          <!-- Summary columns -->
+
+                          <template v-else>
+
+                            <span class="text-muted">
+                              —
+                            </span>
+
+                          </template>
+
+                        </td>
+
+                      </tr>
+
+
+                      <!-- Group Total -->
+
+                      <tr class="group-total-row">
+
+                        <td
+                          v-for="(column, index) in visibleColumns"
+                          :key="column.key"
+                          :class="{
+                            'text-end':
+                              column.key === 'totalCash' ||
+                              column.key === 'totalOnline' ||
+                              column.key === 'totalAmount'
+                          }"
+                        >
+
+                          <template v-if="index === 0">
+
+                            <strong>
+                              Group Total
+                            </strong>
+
+                          </template>
+
+
+                          <template
+                            v-else-if="
+                              column.key === 'totalCash'
+                            "
+                          >
+
+                            <span class="group-total-value">
+                              ₱{{ formatAmount(group.cashTotal) }}
+                            </span>
+
+                          </template>
+
+
+                          <template
+                            v-else-if="
+                              column.key === 'totalOnline'
+                            "
+                          >
+
+                            <span class="group-total-value">
+                              ₱{{ formatAmount(group.onlineTotal) }}
+                            </span>
+
+                          </template>
+
+
+                          <template
+                            v-else-if="
+                              column.key === 'totalAmount'
+                            "
+                          >
+
+                            <span
+                              class="group-total-value grand-group-total"
+                            >
+                              ₱{{ formatAmount(group.totalAmount) }}
+                            </span>
+
+                          </template>
+
+
+                          <template v-else>
+
+                            <span>
+                              &nbsp;
+                            </span>
+
+                          </template>
+
+                        </td>
+
+                      </tr>
+
+                    </template>
 
                   </template>
 
@@ -1123,48 +1182,31 @@
                     >
 
                       <template v-if="index === 0">
-
                         Grand Total
-
                       </template>
-
 
                       <template
                         v-else-if="
                           column.key === 'totalCash'
                         "
                       >
-
-                        ₱{{ formatAmount(
-                          reportCashTotal
-                        ) }}
-
+                        ₱{{ formatAmount(reportCashTotal) }}
                       </template>
-
 
                       <template
                         v-else-if="
                           column.key === 'totalOnline'
                         "
                       >
-
-                        ₱{{ formatAmount(
-                          reportOnlineTotal
-                        ) }}
-
+                        ₱{{ formatAmount(reportOnlineTotal) }}
                       </template>
-
 
                       <template
                         v-else-if="
                           column.key === 'totalAmount'
                         "
                       >
-
-                        ₱{{ formatAmount(
-                          reportTotal
-                        ) }}
-
+                        ₱{{ formatAmount(reportTotal) }}
                       </template>
 
                     </th>
@@ -1179,16 +1221,14 @@
                       :key="column.key"
                       :class="{
                         'text-end':
-                          column.key === 'numberOfParticipants'
+                          column.key ===
+                          'numberOfParticipants'
                       }"
                     >
 
                       <template v-if="index === 0">
-
                         Total Participants
-
                       </template>
-
 
                       <template
                         v-else-if="
@@ -1196,9 +1236,7 @@
                           'numberOfParticipants'
                         "
                       >
-
                         {{ reportTotalParticipants }}
-
                       </template>
 
                     </th>
@@ -1223,18 +1261,11 @@
                       "
                       class="text-end"
                     >
-
                       Grand Total
-
                     </th>
 
-
                     <th class="text-end grand-total">
-
-                      ₱{{ formatAmount(
-                        reportTotal
-                      ) }}
-
+                      ₱{{ formatAmount(reportTotal) }}
                     </th>
 
                   </tr>
@@ -1251,18 +1282,13 @@
                       "
                       class="text-end"
                     >
-
                       Total Participants
-
                     </th>
-
 
                     <th
                       class="text-end participant-total"
                     >
-
                       {{ reportTotalParticipants }}
-
                     </th>
 
                   </tr>
@@ -1314,11 +1340,9 @@
             class="bi bi-file-earmark-text report-icon"
           ></i>
 
-
           <h5 class="fw-bold mt-3">
             No Report Generated
           </h5>
-
 
           <p class="text-muted mb-0">
             Select a date range and generate a report.
@@ -1365,97 +1389,72 @@ import DataTable from "datatables.net-bs5";
 import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
 
 
-const router =
-  useRouter();
+const router = useRouter();
 
-const notyf =
-  new Notyf();
+const notyf = new Notyf();
 
 
 // =========================
 // DataTable
 // =========================
 
-const reportTable =
-  ref(null);
+const reportTable = ref(null);
 
-let dataTable =
-  null;
+let dataTable = null;
 
+const tableReady = ref(false);
 
-const tableReady =
-  ref(false);
+const tableRenderKey = ref(0);
 
-const tableRenderKey =
-  ref(0);
-
-
-const rebuildingReport =
-  ref(false);
+const rebuildingReport = ref(false);
 
 
 // =========================
 // Filters
 // =========================
 
-const startDate =
-  ref("");
+const startDate = ref("");
 
-const endDate =
-  ref("");
+const endDate = ref("");
 
-const name =
-  ref("");
+const name = ref("");
 
-const crNumber =
-  ref("");
+const crNumber = ref("");
 
-const collectionType =
-  ref("");
+const collectionType = ref("");
 
-const contributedTo =
-  ref("");
+const contributedTo = ref("");
 
 
 // =========================
 // Group By
 // =========================
 
-const groupBy =
-  ref("");
+const groupBy = ref("");
 
 
 // =========================
 // Users
 // =========================
 
-const users =
-  ref([]);
+const users = ref([]);
 
+const contributedToOptions = ref([]);
 
-const contributedToOptions =
-  ref([]);
-
-const collectionTypeOptions =
-  ref([]);
+const collectionTypeOptions = ref([]);
 
 
 // =========================
 // Report
 // =========================
 
-const report =
-  ref(null);
+const report = ref(null);
 
+const isLoading = ref(false);
 
-const isLoading =
-  ref(false);
+const errorMessage = ref("");
 
-const errorMessage =
-  ref("");
-
-const reportGenerated =
-  ref(false);
+const reportGenerated = ref(false);
 
 
 // =========================
@@ -1518,95 +1517,69 @@ const availableColumns = [
 const getDefaultColumns = () => {
 
   return availableColumns
-    .filter(
-      column =>
-        column.default
-    )
-    .map(
-      column =>
-        column.key
-    );
+    .filter(column => column.default)
+    .map(column => column.key);
 
 };
 
 
-const selectedColumns =
-  ref(
-    getDefaultColumns()
-  );
+const selectedColumns = ref(
+  getDefaultColumns()
+);
 
 
-const selectableColumns =
-  computed(() => {
+const selectableColumns = computed(() => {
 
-    return availableColumns;
+  return availableColumns;
 
-  });
+});
 
 
 // =========================
 // Grouping Columns
 // =========================
 
-const groupingColumns =
-  computed(() => {
+const groupingColumns = computed(() => {
 
-    if (
-      groupBy.value === "crNumber"
-    ) {
+  if (groupBy.value === "crNumber") {
 
-      return ["crNumber"];
+    return ["crNumber"];
 
-    }
+  }
 
+  if (groupBy.value === "user") {
 
-    if (
-      groupBy.value === "user"
-    ) {
+    return ["contributor"];
 
-      return ["contributor"];
+  }
 
-    }
+  if (groupBy.value === "contributedTo") {
 
+    return ["contributedTo"];
 
-    if (
-      groupBy.value === "contributedTo"
-    ) {
+  }
 
-      return ["contributedTo"];
+  if (groupBy.value === "collectionType") {
 
-    }
+    return ["collectionType"];
 
+  }
 
-    if (
-      groupBy.value === "collectionType"
-    ) {
+  if (groupBy.value === "date-user") {
 
-      return ["collectionType"];
+    return [
+      "date",
+      "contributor"
+    ];
 
-    }
+  }
 
+  return [];
 
-    if (
-      groupBy.value === "date-user"
-    ) {
-
-      return [
-        "date",
-        "contributor"
-      ];
-
-    }
+});
 
 
-    return [];
-
-  });
-
-
-const isGroupingColumn = (
-  columnKey
-) => {
+const isGroupingColumn = (columnKey) => {
 
   return groupingColumns.value.includes(
     columnKey
@@ -1615,9 +1588,7 @@ const isGroupingColumn = (
 };
 
 
-const isRequiredColumn = (
-  columnKey
-) => {
+const isRequiredColumn = (columnKey) => {
 
   if (
     !groupBy.value &&
@@ -1633,18 +1604,13 @@ const isRequiredColumn = (
 };
 
 
-const isColumnVisible = (
-  columnKey
-) => {
+const isColumnVisible = (columnKey) => {
 
-  if (
-    isGroupingColumn(columnKey)
-  ) {
+  if (isGroupingColumn(columnKey)) {
 
     return true;
 
   }
-
 
   return selectedColumns.value.includes(
     columnKey
@@ -1653,22 +1619,28 @@ const isColumnVisible = (
 };
 
 
-const toggleColumn = (
-  columnKey
-) => {
+// =========================
+// UPDATED:
+// Column Toggle
+// =========================
+//
+// When grouped, ALL detail columns
+// are allowed to be unchecked.
+//
+// When NOT grouped, at least one
+// detail column must remain selected.
+//
+// =========================
 
-  if (
-    isGroupingColumn(columnKey)
-  ) {
+const toggleColumn = (columnKey) => {
+
+  if (isGroupingColumn(columnKey)) {
 
     return;
 
   }
 
-
-  if (
-    isRequiredColumn(columnKey)
-  ) {
+  if (isRequiredColumn(columnKey)) {
 
     notyf.error(
       "Amount is required for an ungrouped report."
@@ -1678,7 +1650,6 @@ const toggleColumn = (
 
   }
 
-
   const exists =
     selectedColumns.value.includes(
       columnKey
@@ -1687,8 +1658,18 @@ const toggleColumn = (
 
   if (exists) {
 
+    const remainingColumns =
+      selectedColumns.value.filter(
+        column =>
+          column !== columnKey
+      );
+
+
+    // Only enforce the minimum one-column
+    // rule when there is NO grouping.
     if (
-      selectedColumns.value.length === 1
+      !groupBy.value &&
+      remainingColumns.length === 0
     ) {
 
       notyf.error(
@@ -1701,10 +1682,7 @@ const toggleColumn = (
 
 
     selectedColumns.value =
-      selectedColumns.value.filter(
-        column =>
-          column !== columnKey
-      );
+      remainingColumns;
 
     return;
 
@@ -1712,11 +1690,8 @@ const toggleColumn = (
 
 
   const newSelectedColumns = [
-
     ...selectedColumns.value,
-
     columnKey
-
   ];
 
 
@@ -1729,8 +1704,7 @@ const toggleColumn = (
           )
       )
       .map(
-        column =>
-          column.key
+        column => column.key
       );
 
 };
@@ -1740,83 +1714,130 @@ const toggleColumn = (
 // Visible Columns
 // =========================
 
-const visibleColumns =
-  computed(() => {
+const visibleColumns = computed(() => {
 
-    const groupKeys =
-      groupingColumns.value;
-
-
-    if (
-      groupBy.value
-    ) {
-
-      const groupColumns =
-        groupKeys
-          .map(
-            key =>
-              availableColumns.find(
-                column =>
-                  column.key === key
-              )
-          )
-          .filter(Boolean);
+  const groupKeys =
+    groupingColumns.value;
 
 
-      const otherColumns =
-        availableColumns.filter(
-          column =>
-            selectedColumns.value.includes(
-              column.key
-            ) &&
-            !groupKeys.includes(
-              column.key
+  if (groupBy.value) {
+
+    const groupColumns =
+      groupKeys
+        .map(
+          key =>
+            availableColumns.find(
+              column =>
+                column.key === key
             )
-        );
-
-
-      return [
-
-        ...groupColumns,
-
-        ...otherColumns,
-
-        {
-          key: "totalCash",
-          label: "Total Cash"
-        },
-
-        {
-          key: "totalOnline",
-          label: "Total Online"
-        },
-
-        {
-          key: "totalAmount",
-          label: "Total Amount"
-        }
-
-      ];
-
-    }
-
-
-    return availableColumns.filter(
-      column =>
-        selectedColumns.value.includes(
-          column.key
         )
+        .filter(Boolean);
+
+
+    const otherColumns =
+      availableColumns.filter(
+        column =>
+          selectedColumns.value.includes(
+            column.key
+          ) &&
+          !groupKeys.includes(
+            column.key
+          )
+      );
+
+
+    return [
+
+      ...groupColumns,
+
+      ...otherColumns,
+
+      {
+        key: "totalCash",
+        label: "Total Cash"
+      },
+
+      {
+        key: "totalOnline",
+        label: "Total Online"
+      },
+
+      {
+        key: "totalAmount",
+        label: "Total Amount"
+      }
+
+    ];
+
+  }
+
+
+  return availableColumns.filter(
+    column =>
+      selectedColumns.value.includes(
+        column.key
+      )
+  );
+
+});
+
+
+// =========================
+// UPDATED:
+// Group Summary Only
+// =========================
+//
+// This checks ONLY the user's selected
+// detail columns.
+//
+// Automatically-added grouping columns
+// and total columns are ignored.
+//
+// Therefore:
+//
+// Group By = User
+// selectedColumns = []
+//
+// becomes:
+//
+// Contributor | Total Cash | Total Online | Total Amount
+//
+// with ONE row per user.
+//
+// =========================
+
+const groupedSummaryOnly = computed(() => {
+
+  if (!groupBy.value) {
+
+    return false;
+
+  }
+
+
+  const groupKeys =
+    groupingColumns.value;
+
+
+  const remainingDetailColumns =
+    selectedColumns.value.filter(
+      column =>
+        !groupKeys.includes(column)
     );
 
-  });
+
+  return (
+    remainingDetailColumns.length === 0
+  );
+
+});
 
 
-const tableColumnCount =
-  computed(() => {
+const tableColumnCount = computed(() => {
 
-    return visibleColumns.value.length;
+  return visibleColumns.value.length;
 
-  });
+});
 
 
 const resetColumns = () => {
@@ -1831,9 +1852,7 @@ const resetColumns = () => {
 // User Label
 // =========================
 
-const getUserLabel = (
-  item
-) => {
+const getUserLabel = (item) => {
 
   return `${item.fullName}${
     item.userId
@@ -1851,22 +1870,14 @@ const getUserLabel = (
 const checkAuthentication = () => {
 
   const token =
-    localStorage.getItem(
-      "token"
-    );
+    localStorage.getItem("token");
 
 
   if (!token) {
 
-    notyf.error(
-      "Login as admin"
-    );
+    notyf.error("Login as admin");
 
-
-    router.push(
-      "/login"
-    );
-
+    router.push("/login");
 
     return false;
 
@@ -1887,10 +1898,7 @@ const getUsers = async () => {
   try {
 
     const response =
-      await api.get(
-        "/users/all"
-      );
-
+      await api.get("/users/all");
 
     users.value =
       response.data;
@@ -1925,13 +1933,9 @@ const getContributedToOptions =
       contributedToOptions.value =
         response.data
           .map(
-            item =>
-              item.contributedTo
+            item => item.contributedTo
           )
-          .filter(
-            item =>
-              item
-          );
+          .filter(item => item);
 
     } catch (error) {
 
@@ -1959,13 +1963,9 @@ const getCollectionTypeOptions =
       collectionTypeOptions.value =
         response.data
           .map(
-            item =>
-              item.collectionType
+            item => item.collectionType
           )
-          .filter(
-            item =>
-              item
-          );
+          .filter(item => item);
 
     } catch (error) {
 
@@ -1985,9 +1985,7 @@ const getCollectionTypeOptions =
 
 const destroyDataTable = () => {
 
-  if (
-    dataTable
-  ) {
+  if (dataTable) {
 
     try {
 
@@ -2002,9 +2000,7 @@ const destroyDataTable = () => {
 
     }
 
-
-    dataTable =
-      null;
+    dataTable = null;
 
   }
 
@@ -2024,9 +2020,7 @@ const getDataTableOrder = () => {
     );
 
 
-  if (
-    dateIndex >= 0
-  ) {
+  if (dateIndex >= 0) {
 
     return [
       [
@@ -2053,9 +2047,7 @@ const initializeDataTable =
     await nextTick();
 
 
-    if (
-      !reportTable.value
-    ) {
+    if (!reportTable.value) {
 
       return;
 
@@ -2084,20 +2076,17 @@ const initializeDataTable =
             [10, 25, 50, 100, "All"]
           ],
 
-          searching:
-            true,
+          searching: true,
 
           ordering:
             !isGrouped,
 
-          info:
-            true,
+          info: true,
 
           paging:
             !isGrouped,
 
-          autoWidth:
-            false,
+          autoWidth: false,
 
           order:
             isGrouped
@@ -2106,8 +2095,7 @@ const initializeDataTable =
 
           language: {
 
-            search:
-              "Search:",
+            search: "Search:",
 
             searchPlaceholder:
               "Search report...",
@@ -2129,17 +2117,13 @@ const initializeDataTable =
 
             paginate: {
 
-              first:
-                "First",
+              first: "First",
 
-              last:
-                "Last",
+              last: "Last",
 
-              next:
-                "Next",
+              next: "Next",
 
-              previous:
-                "Previous"
+              previous: "Previous"
 
             }
 
@@ -2158,25 +2142,17 @@ const initializeDataTable =
 const rebuildDataTable =
   async () => {
 
-    tableReady.value =
-      false;
-
+    tableReady.value = false;
 
     destroyDataTable();
 
-
     await nextTick();
-
 
     tableRenderKey.value++;
 
-
-    tableReady.value =
-      true;
-
+    tableReady.value = true;
 
     await nextTick();
-
 
     await initializeDataTable();
 
@@ -2187,22 +2163,60 @@ const rebuildDataTable =
 // Create Report
 // =========================
 
-const createReport =
-  async () => {
+const createReport = async () => {
 
-    errorMessage.value =
-      "";
+  errorMessage.value = "";
 
 
-    if (
-      startDate.value &&
-      endDate.value &&
-      startDate.value >
-      endDate.value
-    ) {
+  if (
+    startDate.value &&
+    endDate.value &&
+    startDate.value >
+    endDate.value
+  ) {
+
+    notyf.error(
+      "Start date cannot be later than end date."
+    );
+
+    return;
+
+  }
+
+
+  let contributorName;
+
+
+  if (name.value.trim()) {
+
+    const search =
+      name.value
+        .trim()
+        .toLowerCase();
+
+
+    const selectedUser =
+      users.value.find(user => {
+
+        const label =
+          getUserLabel(user)
+            .toLowerCase();
+
+
+        return (
+          label === search ||
+          user.fullName
+            ?.toLowerCase() === search ||
+          user._id === name.value
+        );
+
+      });
+
+
+    if (!selectedUser) {
 
       notyf.error(
-        "Start date cannot be later than end date."
+        "Please select a valid contributor."
       );
 
       return;
@@ -2210,196 +2224,129 @@ const createReport =
     }
 
 
-    let contributorName;
+    contributorName =
+      selectedUser.fullName;
+
+  }
+
+
+  isLoading.value = true;
+
+
+  try {
+
+    const response =
+      await api.post(
+        "/contributions/report",
+        {
+
+          startDate:
+            startDate.value,
+
+          endDate:
+            endDate.value,
+
+          name:
+            contributorName ||
+            undefined,
+
+          crNumber:
+            crNumber.value.trim() ||
+            undefined,
+
+          collectionType:
+            collectionType.value.trim() ||
+            undefined,
+
+          contributedTo:
+            contributedTo.value.trim() ||
+            undefined,
+
+          groupBy:
+            groupBy.value ||
+            undefined
+
+        }
+      );
 
 
     if (
-      name.value.trim()
+      !response ||
+      !response.data
     ) {
 
-      const search =
-        name.value
-          .trim()
-          .toLowerCase();
-
-
-      const selectedUser =
-        users.value.find(
-          user => {
-
-            const label =
-              getUserLabel(
-                user
-              ).toLowerCase();
-
-
-            return (
-              label === search ||
-              user.fullName
-                ?.toLowerCase() === search ||
-              user._id === name.value
-            );
-
-          }
-        );
-
-
-      if (
-        !selectedUser
-      ) {
-
-        notyf.error(
-          "Please select a valid contributor."
-        );
-
-        return;
-
-      }
-
-
-      contributorName =
-        selectedUser.fullName;
+      throw new Error(
+        "The server returned an empty response."
+      );
 
     }
 
 
-    isLoading.value =
-      true;
+    report.value =
+      response.data;
 
 
-    try {
+    rebuildingReport.value = true;
 
-      const response =
-        await api.post(
-          "/contributions/report",
-          {
+    resetColumns();
 
-            startDate:
-              startDate.value,
+    reportGenerated.value = true;
 
-            endDate:
-              endDate.value,
+    await rebuildDataTable();
 
-            name:
-              contributorName ||
-              undefined,
+    rebuildingReport.value = false;
 
-            crNumber:
-              crNumber.value.trim() ||
-              undefined,
+    notyf.success(
+      "Report generated successfully."
+    );
 
-            collectionType:
-              collectionType.value.trim() ||
-              undefined,
+  } catch (error) {
 
-            contributedTo:
-              contributedTo.value.trim() ||
-              undefined,
-
-            groupBy:
-              groupBy.value ||
-              undefined
-
-          }
-        );
+    console.error(
+      "Unable to generate report:",
+      error
+    );
 
 
-      if (
-        !response ||
-        !response.data
-      ) {
+    if (
+      error.response?.status === 401 ||
+      error.response?.status === 403
+    ) {
 
-        throw new Error(
-          "The server returned an empty response."
-        );
+      localStorage.removeItem("token");
 
-      }
+      notyf.error("Login as admin");
 
+      router.push("/login");
 
-      report.value =
-        response.data;
-
-
-      rebuildingReport.value =
-        true;
-
-
-      resetColumns();
-
-
-      reportGenerated.value =
-        true;
-
-
-      await rebuildDataTable();
-
-
-      rebuildingReport.value =
-        false;
-
-
-      notyf.success(
-        "Report generated successfully."
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Unable to generate report:",
-        error
-      );
-
-
-      if (
-        error.response?.status === 401 ||
-        error.response?.status === 403
-      ) {
-
-        localStorage.removeItem(
-          "token"
-        );
-
-
-        notyf.error(
-          "Login as admin"
-        );
-
-
-        router.push(
-          "/login"
-        );
-
-
-        return;
-
-      }
-
-
-      const serverMessage =
-        error.response?.data?.message;
-
-
-      errorMessage.value =
-        serverMessage ||
-        error.message ||
-        "Unable to generate report.";
-
-
-      notyf.error(
-        errorMessage.value
-      );
-
-    } finally {
-
-      rebuildingReport.value =
-        false;
-
-      isLoading.value =
-        false;
+      return;
 
     }
 
-  };
+
+    const serverMessage =
+      error.response?.data?.message;
+
+
+    errorMessage.value =
+      serverMessage ||
+      error.message ||
+      "Unable to generate report.";
+
+
+    notyf.error(
+      errorMessage.value
+    );
+
+  } finally {
+
+    rebuildingReport.value = false;
+
+    isLoading.value = false;
+
+  }
+
+};
 
 
 // =========================
@@ -2430,9 +2377,7 @@ const reportContributions =
 // Philippine Date
 // =========================
 
-const getPhilippineDateKey = (
-  date
-) => {
+const getPhilippineDateKey = (date) => {
 
   if (!date) {
 
@@ -2445,17 +2390,13 @@ const getPhilippineDateKey = (
     "en-CA",
     {
 
-      timeZone:
-        "Asia/Manila",
+      timeZone: "Asia/Manila",
 
-      year:
-        "numeric",
+      year: "numeric",
 
-      month:
-        "2-digit",
+      month: "2-digit",
 
-      day:
-        "2-digit"
+      day: "2-digit"
 
     }
   ).format(
@@ -2486,24 +2427,19 @@ const groupedContributions =
     }
 
 
-    const groups =
-      new Map();
+    const groups = new Map();
 
 
     contributions.forEach(
       contribution => {
 
-        let key =
-          "";
+        let key = "";
 
-        let groupLabel =
-          "";
+        let groupLabel = "";
 
-        let user =
-          null;
+        let user = null;
 
-        let date =
-          null;
+        let date = null;
 
 
         if (
@@ -2524,7 +2460,7 @@ const groupedContributions =
         }
 
 
-        if (
+        else if (
           groupBy.value === "user"
         ) {
 
@@ -2535,8 +2471,7 @@ const groupedContributions =
             "unknown-user";
 
 
-          key =
-            String(userId);
+          key = String(userId);
 
 
           groupLabel =
@@ -2625,21 +2560,28 @@ const groupedContributions =
         }
 
 
-        if (
-          !groups.has(key)
-        ) {
+        if (!groups.has(key)) {
 
           groups.set(
             key,
             {
+
               key,
+
               groupLabel,
+
               user,
+
               date,
+
               contributions: [],
+
               totalAmount: 0,
+
               cashTotal: 0,
+
               onlineTotal: 0
+
             }
           );
 
@@ -2647,9 +2589,7 @@ const groupedContributions =
 
 
         const group =
-          groups.get(
-            key
-          );
+          groups.get(key);
 
 
         group.contributions.push(
@@ -2663,13 +2603,13 @@ const groupedContributions =
           ) || 0;
 
 
-        group.totalAmount +=
-          amount;
+        group.totalAmount += amount;
 
 
         const paymentType =
           String(
-            contribution.collectionType || ""
+            contribution.collectionType ||
+            ""
           )
             .trim()
             .toLowerCase();
@@ -2679,16 +2619,15 @@ const groupedContributions =
           paymentType === "cash"
         ) {
 
-          group.cashTotal +=
-            amount;
+          group.cashTotal += amount;
 
         }
+
         else if (
           paymentType === "online"
         ) {
 
-          group.onlineTotal +=
-            amount;
+          group.onlineTotal += amount;
 
         }
 
@@ -2752,6 +2691,7 @@ const groupedContributions =
       );
 
     }
+
     else {
 
       result.sort(
@@ -2781,18 +2721,14 @@ const groupedContributions =
 const reportRows =
   computed(() => {
 
-    if (
-      !report.value
-    ) {
+    if (!report.value) {
 
       return [];
 
     }
 
 
-    if (
-      !groupBy.value
-    ) {
+    if (!groupBy.value) {
 
       return reportContributions.value;
 
@@ -2811,9 +2747,7 @@ const reportRows =
 const reportCount =
   computed(() => {
 
-    if (
-      !report.value
-    ) {
+    if (!report.value) {
 
       return 0;
 
@@ -2863,9 +2797,7 @@ const reportTotalParticipants =
 const reportTotal =
   computed(() => {
 
-    if (
-      !report.value
-    ) {
+    if (!report.value) {
 
       return 0;
 
@@ -2894,7 +2826,8 @@ const reportCashTotal =
 
         const paymentType =
           String(
-            contribution.collectionType || ""
+            contribution.collectionType ||
+            ""
           )
             .trim()
             .toLowerCase();
@@ -2940,7 +2873,8 @@ const reportOnlineTotal =
 
         const paymentType =
           String(
-            contribution.collectionType || ""
+            contribution.collectionType ||
+            ""
           )
             .trim()
             .toLowerCase();
@@ -3082,9 +3016,7 @@ const getContributionCellOrder = (
 // Format Date
 // =========================
 
-const formatDate = (
-  date
-) => {
+const formatDate = (date) => {
 
   if (!date) {
 
@@ -3134,9 +3066,7 @@ const formatDate = (
 // Format Amount
 // =========================
 
-const formatAmount = (
-  amount
-) => {
+const formatAmount = (amount) => {
 
   return Number(
     amount || 0
@@ -3205,9 +3135,7 @@ const exportToExcel = () => {
   const filters = [];
 
 
-  if (
-    name.value.trim()
-  ) {
+  if (name.value.trim()) {
 
     filters.push(
       `Contributor: ${name.value.trim()}`
@@ -3216,9 +3144,7 @@ const exportToExcel = () => {
   }
 
 
-  if (
-    crNumber.value.trim()
-  ) {
+  if (crNumber.value.trim()) {
 
     filters.push(
       `CR Number: ${crNumber.value.trim()}`
@@ -3227,9 +3153,7 @@ const exportToExcel = () => {
   }
 
 
-  if (
-    contributedTo.value.trim()
-  ) {
+  if (contributedTo.value.trim()) {
 
     filters.push(
       `Contributed To: ${contributedTo.value.trim()}`
@@ -3238,9 +3162,7 @@ const exportToExcel = () => {
   }
 
 
-  if (
-    collectionType.value.trim()
-  ) {
+  if (collectionType.value.trim()) {
 
     filters.push(
       `Collection Type: ${collectionType.value.trim()}`
@@ -3249,9 +3171,7 @@ const exportToExcel = () => {
   }
 
 
-  if (
-    groupBy.value
-  ) {
+  if (groupBy.value) {
 
     filters.push(
       `Group By: ${
@@ -3264,9 +3184,7 @@ const exportToExcel = () => {
   }
 
 
-  if (
-    filters.length > 0
-  ) {
+  if (filters.length > 0) {
 
     rows.push([
       "Filters",
@@ -3285,8 +3203,7 @@ const exportToExcel = () => {
 
   const headers =
     visibleColumns.value.map(
-      column =>
-        column.label
+      column => column.label
     );
 
 
@@ -3294,9 +3211,7 @@ const exportToExcel = () => {
     rows.length;
 
 
-  rows.push(
-    headers
-  );
+  rows.push(headers);
 
 
   // =========================
@@ -3312,9 +3227,7 @@ const exportToExcel = () => {
       columnKey === "date"
     ) {
 
-      return formatDate(
-        item.date
-      );
+      return formatDate(item.date);
 
     }
 
@@ -3335,10 +3248,7 @@ const exportToExcel = () => {
       columnKey === "crNumber"
     ) {
 
-      return (
-        item.crNumber ||
-        ""
-      );
+      return item.crNumber || "";
 
     }
 
@@ -3347,10 +3257,7 @@ const exportToExcel = () => {
       columnKey === "contributedTo"
     ) {
 
-      return (
-        item.contributedTo ||
-        ""
-      );
+      return item.contributedTo || "";
 
     }
 
@@ -3359,10 +3266,7 @@ const exportToExcel = () => {
       columnKey === "collectionType"
     ) {
 
-      return (
-        item.collectionType ||
-        ""
-      );
+      return item.collectionType || "";
 
     }
 
@@ -3371,10 +3275,7 @@ const exportToExcel = () => {
       columnKey === "description"
     ) {
 
-      return (
-        item.description ||
-        ""
-      );
+      return item.description || "";
 
     }
 
@@ -3407,22 +3308,10 @@ const exportToExcel = () => {
 
 
   // =========================
-  // Detail Rows
+  // Ungrouped Rows
   // =========================
 
-  /*
-    Every contribution remains ONE row.
-
-    Amount contains the individual
-    contribution amount.
-
-    Group summary columns remain blank
-    for individual contribution rows.
-  */
-
-  if (
-    !groupBy.value
-  ) {
+  if (!groupBy.value) {
 
     reportContributions.value.forEach(
       contribution => {
@@ -3444,9 +3333,7 @@ const exportToExcel = () => {
         );
 
 
-        rows.push(
-          row
-        );
+        rows.push(row);
 
       }
     );
@@ -3458,29 +3345,137 @@ const exportToExcel = () => {
   // Grouped Rows
   // =========================
 
-  /*
-    The Excel sheet now follows the
-    same structure as the DataTable:
-
-    Contribution
-    Contribution
-    Group Total
-    Contribution
-    Contribution
-    Group Total
-    ...
-  */
-
-  if (
-    groupBy.value
-  ) {
+  if (groupBy.value) {
 
     groupedContributions.value.forEach(
       group => {
 
-        // =========================
-        // Contribution Rows
-        // =========================
+        // =================================================
+        // SUMMARY ONLY EXPORT
+        //
+        // One Excel row per group.
+        // No contribution rows are exported.
+        // =================================================
+
+        if (groupedSummaryOnly.value) {
+
+          const summaryRow =
+            new Array(
+              visibleColumns.value.length
+            ).fill("");
+
+
+          visibleColumns.value.forEach(
+            (
+              column,
+              index
+            ) => {
+
+              // Grouping columns
+
+              if (
+                groupingColumns.value.includes(
+                  column.key
+                )
+              ) {
+
+                if (
+                  column.key === "date"
+                ) {
+
+                  summaryRow[index] =
+                    formatDate(
+                      group.date
+                    );
+
+                }
+
+                else if (
+                  column.key ===
+                  "contributor"
+                ) {
+
+                  summaryRow[index] =
+                    group.user?.fullName ||
+                    group.groupLabel ||
+                    "Unknown User";
+
+                }
+
+                else {
+
+                  summaryRow[index] =
+                    group.groupLabel ||
+                    "Unknown";
+
+                }
+
+                return;
+
+              }
+
+
+              // Total Cash
+
+              if (
+                column.key === "totalCash"
+              ) {
+
+                summaryRow[index] =
+                  Number(
+                    group.cashTotal
+                  ) || 0;
+
+                return;
+
+              }
+
+
+              // Total Online
+
+              if (
+                column.key === "totalOnline"
+              ) {
+
+                summaryRow[index] =
+                  Number(
+                    group.onlineTotal
+                  ) || 0;
+
+                return;
+
+              }
+
+
+              // Total Amount
+
+              if (
+                column.key === "totalAmount"
+              ) {
+
+                summaryRow[index] =
+                  Number(
+                    group.totalAmount
+                  ) || 0;
+
+              }
+
+            }
+          );
+
+
+          rows.push(summaryRow);
+
+          return;
+
+        }
+
+
+        // =================================================
+        // NORMAL GROUPED EXPORT
+        //
+        // Contribution rows + Group Total
+        // =================================================
 
         group.contributions.forEach(
           contribution => {
@@ -3515,16 +3510,14 @@ const exportToExcel = () => {
             );
 
 
-            rows.push(
-              row
-            );
+            rows.push(row);
 
           }
         );
 
 
         // =========================
-        // Group Total Row
+        // Group Total
         // =========================
 
         const groupTotalRow =
@@ -3539,9 +3532,7 @@ const exportToExcel = () => {
             index
           ) => {
 
-            if (
-              index === 0
-            ) {
+            if (index === 0) {
 
               groupTotalRow[index] =
                 "GROUP TOTAL";
@@ -3588,17 +3579,13 @@ const exportToExcel = () => {
                   group.totalAmount
                 ) || 0;
 
-              return;
-
             }
 
           }
         );
 
 
-        rows.push(
-          groupTotalRow
-        );
+        rows.push(groupTotalRow);
 
       }
     );
@@ -3616,9 +3603,7 @@ const exportToExcel = () => {
     ).fill("");
 
 
-  if (
-    groupBy.value
-  ) {
+  if (groupBy.value) {
 
     visibleColumns.value.forEach(
       (
@@ -3626,9 +3611,7 @@ const exportToExcel = () => {
         index
       ) => {
 
-        if (
-          index === 0
-        ) {
+        if (index === 0) {
 
           grandTotalRow[index] =
             "GRAND TOTAL";
@@ -3675,14 +3658,13 @@ const exportToExcel = () => {
               reportTotal.value
             ) || 0;
 
-          return;
-
         }
 
       }
     );
 
   }
+
   else {
 
     if (
@@ -3693,6 +3675,7 @@ const exportToExcel = () => {
         reportTotal.value;
 
     }
+
     else {
 
       grandTotalRow[
@@ -3713,10 +3696,7 @@ const exportToExcel = () => {
 
   rows.push([]);
 
-
-  rows.push(
-    grandTotalRow
-  );
+  rows.push(grandTotalRow);
 
 
   // =========================
@@ -3729,9 +3709,7 @@ const exportToExcel = () => {
     ).fill("");
 
 
-  if (
-    groupBy.value
-  ) {
+  if (groupBy.value) {
 
     visibleColumns.value.forEach(
       (
@@ -3739,9 +3717,7 @@ const exportToExcel = () => {
         index
       ) => {
 
-        if (
-          index === 0
-        ) {
+        if (index === 0) {
 
           totalParticipantsRow[index] =
             "TOTAL PARTICIPANTS";
@@ -3765,12 +3741,6 @@ const exportToExcel = () => {
     );
 
 
-    /*
-      If Participants was hidden,
-      put the total in the last column
-      so it is still visible in Excel.
-    */
-
     const hasParticipantColumn =
       visibleColumns.value.some(
         column =>
@@ -3792,6 +3762,7 @@ const exportToExcel = () => {
     }
 
   }
+
   else {
 
     if (
@@ -3802,6 +3773,7 @@ const exportToExcel = () => {
         reportTotalParticipants.value;
 
     }
+
     else {
 
       totalParticipantsRow[
@@ -3820,9 +3792,7 @@ const exportToExcel = () => {
   }
 
 
-  rows.push(
-    totalParticipantsRow
-  );
+  rows.push(totalParticipantsRow);
 
 
   // =========================
@@ -3830,9 +3800,7 @@ const exportToExcel = () => {
   // =========================
 
   const worksheet =
-    XLSX.utils.aoa_to_sheet(
-      rows
-    );
+    XLSX.utils.aoa_to_sheet(rows);
 
 
   // =========================
@@ -3855,42 +3823,38 @@ const exportToExcel = () => {
     let maxLength = 0;
 
 
-    rows.forEach(
-      row => {
+    rows.forEach(row => {
 
-        const value =
-          row[colIndex] !== undefined &&
-          row[colIndex] !== null
-            ? String(
-                row[colIndex]
-              )
-            : "";
+      const value =
+        row[colIndex] !== undefined &&
+        row[colIndex] !== null
+          ? String(row[colIndex])
+          : "";
 
 
-        const longestLine =
-          value
-            .split("\n")
-            .reduce(
-              (
+      const longestLine =
+        value
+          .split("\n")
+          .reduce(
+            (
+              longest,
+              line
+            ) =>
+              Math.max(
                 longest,
-                line
-              ) =>
-                Math.max(
-                  longest,
-                  line.length
-                ),
-              0
-            );
-
-
-        maxLength =
-          Math.max(
-            maxLength,
-            longestLine
+                line.length
+              ),
+            0
           );
 
-      }
-    );
+
+      maxLength =
+        Math.max(
+          maxLength,
+          longestLine
+        );
+
+    });
 
 
     columnWidths.push({
@@ -3933,7 +3897,8 @@ const exportToExcel = () => {
 
 
       for (
-        let rowIndex = headerRowIndex + 1;
+        let rowIndex =
+          headerRowIndex + 1;
         rowIndex < rows.length;
         rowIndex++
       ) {
@@ -4009,18 +3974,14 @@ watch(
   ],
   async () => {
 
-    if (
-      !reportGenerated.value
-    ) {
+    if (!reportGenerated.value) {
 
       return;
 
     }
 
 
-    if (
-      rebuildingReport.value
-    ) {
+    if (rebuildingReport.value) {
 
       return;
 
@@ -4042,9 +4003,7 @@ watch(
 
 onMounted(() => {
 
-  if (
-    !checkAuthentication()
-  ) {
+  if (!checkAuthentication()) {
 
     return;
 
@@ -4080,19 +4039,10 @@ onBeforeUnmount(() => {
 ========================= */
 
 .cr-number {
-
-  display:
-    inline-block;
-
-  color:
-    #6b7c8f;
-
-  font-size:
-    13px;
-
-  font-weight:
-    600;
-
+  display: inline-block;
+  color: #6b7c8f;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 
@@ -4101,16 +4051,9 @@ onBeforeUnmount(() => {
 ========================= */
 
 .contribution-page {
-
-  min-height:
-    calc(100vh - 60px);
-
-  padding:
-    50px 0;
-
-  background:
-    #eef3f7;
-
+  min-height: calc(100vh - 60px);
+  padding: 50px 0;
+  background: #eef3f7;
 }
 
 
@@ -4119,18 +4062,12 @@ onBeforeUnmount(() => {
 ========================= */
 
 .contribution-page h2 {
-
-  color:
-    #1e3a5f;
-
+  color: #1e3a5f;
 }
 
 
 .contribution-page .text-muted {
-
-  color:
-    #6b7c8f !important;
-
+  color: #6b7c8f !important;
 }
 
 
@@ -4139,15 +4076,9 @@ onBeforeUnmount(() => {
 ========================= */
 
 .contribution-card {
-
-  border-radius:
-    14px;
-
-  overflow:
-    hidden;
-
-  background:
-    #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
 
   box-shadow:
     0 8px 25px
@@ -4157,7 +4088,6 @@ onBeforeUnmount(() => {
       95,
       0.10
     ) !important;
-
 }
 
 
@@ -4166,57 +4096,34 @@ onBeforeUnmount(() => {
 ========================= */
 
 .form-label {
-
-  color:
-    #34495e;
-
+  color: #34495e;
 }
 
 
 .form-control,
 .form-select {
-
-  padding:
-    12px 14px;
-
-  color:
-    #263238;
-
-  background:
-    #ffffff;
-
-  border:
-    1px solid #cbd5df;
-
-  border-radius:
-    7px;
+  padding: 12px 14px;
+  color: #263238;
+  background: #ffffff;
+  border: 1px solid #cbd5df;
+  border-radius: 7px;
 
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
-
 }
 
 
 .form-control::placeholder {
-
-  color:
-    #8a9aaa;
-
+  color: #8a9aaa;
 }
 
 
 .form-control:focus,
 .form-select:focus {
-
-  color:
-    #263238;
-
-  background:
-    #ffffff;
-
-  border-color:
-    #7d9bb8;
+  color: #263238;
+  background: #ffffff;
+  border-color: #7d9bb8;
 
   box-shadow:
     0 0 0 0.2rem
@@ -4227,9 +4134,7 @@ onBeforeUnmount(() => {
       0.12
     );
 
-  outline:
-    none;
-
+  outline: none;
 }
 
 
@@ -4238,12 +4143,8 @@ onBeforeUnmount(() => {
 ========================= */
 
 .summary-card {
-
-  border-radius:
-    14px;
-
-  background:
-    #ffffff;
+  border-radius: 14px;
+  background: #ffffff;
 
   box-shadow:
     0 5px 18px
@@ -4253,46 +4154,26 @@ onBeforeUnmount(() => {
       95,
       0.08
     ) !important;
-
 }
 
 
 .summary-label {
-
-  color:
-    #6b7c8f;
-
-  font-size:
-    14px;
-
-  font-weight:
-    600;
-
+  color: #6b7c8f;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 
 .summary-value {
-
-  margin-top:
-    5px;
-
-  color:
-    #1e3a5f;
-
-  font-size:
-    28px;
-
-  font-weight:
-    700;
-
+  margin-top: 5px;
+  color: #1e3a5f;
+  font-size: 28px;
+  font-weight: 700;
 }
 
 
 .summary-value.total {
-
-  color:
-    #1e5a8a;
-
+  color: #1e5a8a;
 }
 
 
@@ -4301,119 +4182,68 @@ onBeforeUnmount(() => {
 ========================= */
 
 .column-option {
-
-  padding:
-    9px 12px;
-
-  background:
-    #f5f7f9;
-
-  border:
-    1px solid #edf1f4;
-
-  border-radius:
-    7px;
+  padding: 9px 12px;
+  background: #f5f7f9;
+  border: 1px solid #edf1f4;
+  border-radius: 7px;
 
   transition:
     background 0.2s ease,
     border-color 0.2s ease;
-
 }
 
 
 .column-option:hover {
-
-  background:
-    #eef3f7;
-
-  border-color:
-    #dce3e9;
-
+  background: #eef3f7;
+  border-color: #dce3e9;
 }
 
 
 .column-option
 .form-check-input {
-
-  cursor:
-    pointer;
-
+  cursor: pointer;
 }
 
 
 .column-option
 .form-check-input:checked {
-
-  background-color:
-    #1e5a8a;
-
-  border-color:
-    #1e5a8a;
-
+  background-color: #1e5a8a;
+  border-color: #1e5a8a;
 }
 
 
 .column-option
 .form-check-input:disabled {
-
-  opacity:
-    0.75;
-
+  opacity: 0.75;
 }
 
 
 .column-option
 .form-check-label {
-
-  color:
-    #34495e;
-
-  font-weight:
-    600;
-
-  cursor:
-    pointer;
-
+  color: #34495e;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 
 .column-disabled {
-
-  background:
-    #f1f3f5;
-
+  background: #f1f3f5;
 }
 
 
 .column-disabled
 .form-check-label {
-
-  cursor:
-    default;
-
+  cursor: default;
 }
 
 
 .column-help {
-
-  padding:
-    10px 14px;
-
-  color:
-    #6b7c8f;
-
-  background:
-    #f5f7f9;
-
-  border:
-    1px solid #edf1f4;
-
-  border-radius:
-    7px;
-
-  font-size:
-    13px;
-
+  padding: 10px 14px;
+  color: #6b7c8f;
+  background: #f5f7f9;
+  border: 1px solid #edf1f4;
+  border-radius: 7px;
+  font-size: 13px;
 }
 
 
@@ -4422,59 +4252,33 @@ onBeforeUnmount(() => {
 ========================= */
 
 :deep(.dataTables_wrapper) {
-
-  padding:
-    4px 0 0;
-
+  padding: 4px 0 0;
 }
 
 
 :deep(.dataTables_wrapper .dt-search) {
-
-  margin-bottom:
-    15px;
-
+  margin-bottom: 15px;
 }
 
 
 :deep(.dataTables_wrapper .dt-search label) {
-
-  color:
-    #34495e;
-
-  font-weight:
-    600;
-
+  color: #34495e;
+  font-weight: 600;
 }
 
 
 :deep(.dataTables_wrapper .dt-search input) {
-
-  margin-left:
-    8px;
-
-  padding:
-    8px 12px;
-
-  color:
-    #263238;
-
-  background:
-    #ffffff;
-
-  border:
-    1px solid #cbd5df;
-
-  border-radius:
-    7px;
-
+  margin-left: 8px;
+  padding: 8px 12px;
+  color: #263238;
+  background: #ffffff;
+  border: 1px solid #cbd5df;
+  border-radius: 7px;
 }
 
 
 :deep(.dataTables_wrapper .dt-search input:focus) {
-
-  border-color:
-    #7d9bb8;
+  border-color: #7d9bb8;
 
   box-shadow:
     0 0 0 0.2rem
@@ -4485,114 +4289,63 @@ onBeforeUnmount(() => {
       0.12
     );
 
-  outline:
-    none;
-
+  outline: none;
 }
 
 
 :deep(.dataTables_wrapper .dt-length) {
-
-  margin-bottom:
-    15px;
-
+  margin-bottom: 15px;
 }
 
 
 :deep(.dataTables_wrapper .dt-length label) {
-
-  color:
-    #34495e;
-
-  font-weight:
-    600;
-
+  color: #34495e;
+  font-weight: 600;
 }
 
 
 :deep(.dataTables_wrapper .dt-length select) {
-
-  margin:
-    0 5px;
-
-  padding:
-    6px 30px 6px 10px;
-
-  color:
-    #263238;
-
-  border:
-    1px solid #cbd5df;
-
-  border-radius:
-    7px;
-
+  margin: 0 5px;
+  padding: 6px 30px 6px 10px;
+  color: #263238;
+  border: 1px solid #cbd5df;
+  border-radius: 7px;
 }
 
 
 :deep(.dataTables_wrapper .dt-info) {
-
-  padding-top:
-    15px;
-
-  color:
-    #6b7c8f;
-
-  font-size:
-    14px;
-
+  padding-top: 15px;
+  color: #6b7c8f;
+  font-size: 14px;
 }
 
 
 :deep(.dataTables_wrapper .dt-paging) {
-
-  padding-top:
-    12px;
-
+  padding-top: 12px;
 }
 
 
 :deep(.dataTables_wrapper .dt-paging .pagination) {
-
-  margin:
-    0;
-
+  margin: 0;
 }
 
 
 :deep(.dataTables_wrapper .dt-paging .page-link) {
-
-  color:
-    #1e5a8a;
-
-  border-color:
-    #dce3e9;
-
+  color: #1e5a8a;
+  border-color: #dce3e9;
 }
 
 
 :deep(.dataTables_wrapper .dt-paging .page-link:hover) {
-
-  color:
-    #1e3a5f;
-
-  background:
-    #eef3f7;
-
+  color: #1e3a5f;
+  background: #eef3f7;
 }
 
 
 :deep(.dataTables_wrapper .dt-paging .active .page-link) {
-
-  color:
-    #ffffff;
-
-  background:
-    #1e5a8a;
-
-  border-color:
-    #1e5a8a;
-
+  color: #ffffff;
+  background: #1e5a8a;
+  border-color: #1e5a8a;
 }
 
 
@@ -4601,63 +4354,34 @@ onBeforeUnmount(() => {
 ========================= */
 
 .table {
-
-  color:
-    #263238;
-
+  color: #263238;
 }
 
 
 .table thead th {
-
-  padding:
-    15px 18px;
-
-  color:
-    #34495e;
-
-  background:
-    #f5f7f9;
-
-  border-bottom:
-    1px solid #dce3e9;
-
-  font-size:
-    14px;
-
-  white-space:
-    nowrap;
-
+  padding: 15px 18px;
+  color: #34495e;
+  background: #f5f7f9;
+  border-bottom: 1px solid #dce3e9;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 
 .table tbody td {
-
-  padding:
-    16px 18px;
-
-  border-color:
-    #edf1f4;
-
-  vertical-align:
-    top;
-
+  padding: 16px 18px;
+  border-color: #edf1f4;
+  vertical-align: top;
 }
 
 
 .table tbody td.text-end {
-
-  text-align:
-    right !important;
-
+  text-align: right !important;
 }
 
 
 .table tbody tr:last-child td {
-
-  border-bottom:
-    none;
-
+  border-bottom: none;
 }
 
 
@@ -4667,19 +4391,36 @@ onBeforeUnmount(() => {
 
 .table thead th.dt-orderable-asc,
 .table thead th.dt-orderable-desc {
-
-  cursor:
-    pointer;
-
+  cursor: pointer;
 }
 
 
 .table thead th.dt-ordering-asc,
 .table thead th.dt-ordering-desc {
+  color: #1e5a8a;
+}
 
-  color:
-    #1e5a8a;
 
+/* =========================
+   GROUP SUMMARY ONLY
+========================= */
+
+.group-summary-row td {
+  padding: 15px 18px;
+  background: #ffffff;
+  border-top: 1px solid #dce3e9;
+  border-bottom: 2px solid #dce3e9;
+  vertical-align: middle;
+}
+
+
+.group-summary-row td:first-child {
+  color: #34495e;
+}
+
+
+.group-summary-row:hover td {
+  background: #f8fafb;
 }
 
 
@@ -4688,21 +4429,13 @@ onBeforeUnmount(() => {
 ========================= */
 
 .group-contribution-row td {
-
-  padding:
-    14px 18px;
-
-  vertical-align:
-    middle;
-
+  padding: 14px 18px;
+  vertical-align: middle;
 }
 
 
 .group-contribution-row + .group-contribution-row td {
-
-  border-top:
-    1px solid #edf1f4;
-
+  border-top: 1px solid #edf1f4;
 }
 
 
@@ -4711,58 +4444,30 @@ onBeforeUnmount(() => {
 ========================= */
 
 .group-total-row td {
-
-  padding:
-    11px 18px;
-
-  background:
-    #f5f7f9;
-
-  border-top:
-    1px solid #dce3e9;
-
-  border-bottom:
-    2px solid #dce3e9;
-
-  vertical-align:
-    middle;
-
+  padding: 11px 18px;
+  background: #f5f7f9;
+  border-top: 1px solid #dce3e9;
+  border-bottom: 2px solid #dce3e9;
+  vertical-align: middle;
 }
 
 
 .group-total-row td:first-child {
-
-  color:
-    #34495e;
-
-  font-weight:
-    700;
-
+  color: #34495e;
+  font-weight: 700;
 }
 
 
 .group-total-value {
-
-  color:
-    #34495e;
-
-  font-weight:
-    700;
-
-  white-space:
-    nowrap;
-
+  color: #34495e;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 
 .grand-group-total {
-
-  color:
-    #1e3a5f;
-
-  font-size:
-    16px;
-
+  color: #1e3a5f;
+  font-size: 16px;
 }
 
 
@@ -4771,22 +4476,11 @@ onBeforeUnmount(() => {
 ========================= */
 
 .collection-type {
-
-  display:
-    block;
-
-  margin-top:
-    2px;
-
-  color:
-    #1e5a8a;
-
-  font-size:
-    13px;
-
-  font-weight:
-    600;
-
+  display: block;
+  margin-top: 2px;
+  color: #1e5a8a;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 
@@ -4795,13 +4489,8 @@ onBeforeUnmount(() => {
 ========================= */
 
 .contribution-description {
-
-  margin-top:
-    2px;
-
-  font-size:
-    13px;
-
+  margin-top: 2px;
+  font-size: 13px;
 }
 
 
@@ -4810,16 +4499,9 @@ onBeforeUnmount(() => {
 ========================= */
 
 .amount {
-
-  color:
-    #34495e;
-
-  font-size:
-    15px;
-
-  font-weight:
-    600;
-
+  color: #34495e;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 
@@ -4828,16 +4510,9 @@ onBeforeUnmount(() => {
 ========================= */
 
 .total-amount {
-
-  color:
-    #1e3a5f;
-
-  font-size:
-    16px;
-
-  font-weight:
-    700;
-
+  color: #1e3a5f;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 
@@ -4846,16 +4521,9 @@ onBeforeUnmount(() => {
 ========================= */
 
 .grand-total {
-
-  color:
-    #1e3a5f;
-
-  background:
-    #f5f7f9;
-
-  font-size:
-    17px;
-
+  color: #1e3a5f;
+  background: #f5f7f9;
+  font-size: 17px;
 }
 
 
@@ -4864,16 +4532,9 @@ onBeforeUnmount(() => {
 ========================= */
 
 .participant-total {
-
-  color:
-    #1e5a8a;
-
-  background:
-    #f5f7f9;
-
-  font-size:
-    17px;
-
+  color: #1e5a8a;
+  background: #f5f7f9;
+  font-size: 17px;
 }
 
 
@@ -4882,55 +4543,29 @@ onBeforeUnmount(() => {
 ========================= */
 
 .btn {
-
-  font-weight:
-    600;
-
-  border-radius:
-    7px;
-
+  font-weight: 600;
+  border-radius: 7px;
 }
 
 
 .btn-danger {
-
-  color:
-    #263238;
-
-  background:
-    #f4c95d;
-
-  border-color:
-    #f4c95d;
-
+  color: #263238;
+  background: #f4c95d;
+  border-color: #f4c95d;
 }
 
 
 .btn-danger:hover {
-
-  color:
-    #263238;
-
-  background:
-    #e9b949;
-
-  border-color:
-    #e9b949;
-
+  color: #263238;
+  background: #e9b949;
+  border-color: #e9b949;
 }
 
 
 .btn-danger:disabled {
-
-  color:
-    #5f6368;
-
-  background:
-    #e1e5e8;
-
-  border-color:
-    #e1e5e8;
-
+  color: #5f6368;
+  background: #e1e5e8;
+  border-color: #e1e5e8;
 }
 
 
@@ -4939,19 +4574,10 @@ onBeforeUnmount(() => {
 ========================= */
 
 .alert-danger {
-
-  color:
-    #7a3030;
-
-  background:
-    #fbeaea;
-
-  border-color:
-    #efcaca;
-
-  border-radius:
-    7px;
-
+  color: #7a3030;
+  background: #fbeaea;
+  border-color: #efcaca;
+  border-radius: 7px;
 }
 
 
@@ -4960,13 +4586,8 @@ onBeforeUnmount(() => {
 ========================= */
 
 .report-icon {
-
-  color:
-    #7d9bb8;
-
-  font-size:
-    42px;
-
+  color: #7d9bb8;
+  font-size: 42px;
 }
 
 
@@ -4977,37 +4598,23 @@ onBeforeUnmount(() => {
 @media (max-width: 767.98px) {
 
   .contribution-page {
-
-    padding:
-      35px 15px;
-
+    padding: 35px 15px;
   }
 
 
   :deep(.dataTables_wrapper .dt-search input) {
-
-    width:
-      100%;
-
-    margin:
-      8px 0 0;
-
+    width: 100%;
+    margin: 8px 0 0;
   }
 
 
   :deep(.dataTables_wrapper .dt-search) {
-
-    width:
-      100%;
-
+    width: 100%;
   }
 
 
   .table {
-
-    min-width:
-      1100px;
-
+    min-width: 1100px;
   }
 
 }

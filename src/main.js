@@ -28,6 +28,7 @@ import AddMember from './pages/AddMember.vue';
 import Members from './pages/Members.vue';
 import EditMember from './pages/EditMember.vue';
 
+import LedgerReportTemplate from './pages/LedgerReportTemplate.vue';
 // createRouter serves as your entire map, holds the list of all pages in your project
 
 // createWebHistory assigns the url style, it makes sure that our links look clean compared on using hashtag
@@ -112,6 +113,12 @@ const router = createRouter({
       component: UserContributions
     },
 
+
+    {
+      path: "/ledger/template",
+      name: "LedgerReportTemplate",
+      component: LedgerReportTemplate
+    },
 
     // Keep catch-all last
     {

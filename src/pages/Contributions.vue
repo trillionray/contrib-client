@@ -5,10 +5,10 @@
     <div class="container">
 
       <!-- Header -->
-      <!-- Header -->
       <div class="d-flex justify-content-between align-items-center mb-4">
 
         <div>
+
           <h2 class="fw-bold mb-1">
             Contributions
           </h2>
@@ -16,7 +16,9 @@
           <p class="text-muted mb-0">
             View all recorded contributions
           </p>
+
         </div>
+
 
         <!-- HEADER -->
         <div class="d-flex gap-2">
@@ -94,26 +96,34 @@
         class="card contribution-card shadow border-0"
       >
 
-        <div class="card-body p-0">
+        <div class="card-body">
 
           <div class="table-responsive">
 
-            <table class="table table-hover align-middle mb-0">
+            <table
+              ref="contributionTable"
+              class="table table-hover align-middle mb-0"
+              style="width: 100%;"
+            >
 
               <thead>
 
                 <tr>
 
                   <th>
-                    CR # / Date
+                    CR #
                   </th>
 
                   <th>
-                    Contributor
+                    Date
                   </th>
 
                   <th>
                     Contributions
+                  </th>
+
+                  <th>
+                    Contributor
                   </th>
 
                   <th class="text-end">
@@ -140,33 +150,94 @@
                   :key="item.key"
                 >
 
-                  <!-- Date -->
+                  <!-- =========================
+                       1. CR #
+                  ========================== -->
                   <td>
 
-                    <small
+                    <span
                       v-if="item.contributions[0]?.crNumber"
                       class="cr-number"
                     >
-                      CR #: {{ item.contributions[0].crNumber }}
-                    </small>
+                      {{ item.contributions[0].crNumber }}
+                    </span>
+
+                    <span
+                      v-else
+                      class="text-muted"
+                    >
+                      —
+                    </span>
+
+                  </td>
+
+
+                  <!-- =========================
+                       2. DATE
+                  ========================== -->
+                  <td
+                    :data-order="
+                      new Date(item.date).getTime()
+                    "
+                  >
 
                     <div class="fw-semibold">
                       {{ formatDate(item.date) }}
                     </div>
 
-                    
+                  </td>
+
+
+                  <!-- =========================
+                       3. CONTRIBUTIONS
+                  ========================== -->
+                  <td>
+
+                    <div
+                      v-for="(contribution, index) in item.contributions"
+                      :key="
+                        contribution._id ||
+                        index
+                      "
+                      class="contribution-detail"
+                    >
+
+                      <div class="fw-semibold">
+                        {{ contribution.contributedTo }}
+                      </div>
+
+                      <small class="collection-type">
+                        {{ contribution.collectionType }}
+                      </small>
+
+                      <div
+                        class="text-muted contribution-description"
+                      >
+                        {{ contribution.description }}
+                      </div>
+
+                      <small class="text-muted">
+                        Participants:
+                        {{ contribution.numberOfParticipants }}
+                      </small>
+
+                    </div>
 
                   </td>
 
-                  <!-- Contributor -->
-                  <td>
+
+                  <!-- =========================
+                       4. CONTRIBUTOR
+                  ========================== -->
+                  <td
+                    :data-order="
+                      item.fullName || ''
+                    "
+                  >
 
                     <div class="fw-semibold">
                       {{ item.fullName }}
                     </div>
-
-
-
 
                     <small
                       v-if="item.userId"
@@ -178,80 +249,89 @@
                   </td>
 
 
-                 <!-- Contributions -->
-                 <td>
-
-                   <div
-                     v-for="(contribution, index) in item.contributions"
-                     :key="contribution._id || index"
-                     class="contribution-detail"
-                   >
-
-                     <div class="fw-semibold">
-                       {{ contribution.contributedTo }}
-                     </div>
-
-                     <small class="collection-type">
-                       {{ contribution.collectionType }}
-                     </small>
-
-                     <div class="text-muted contribution-description">
-                       {{ contribution.description }}
-                     </div>
-
-                     <small class="text-muted">
-                       Participants:
-                       {{ contribution.numberOfParticipants }}
-                     </small>
-
-                   </div>
-
-                 </td>
-
-                  <!-- Individual Amounts -->
-                  <td class="text-end">
+                  <!-- =========================
+                       5. AMOUNT
+                  ========================== -->
+                  <td
+                    class="text-end"
+                    :data-order="
+                      item.contributions.reduce(
+                        (total, contribution) =>
+                          total +
+                          Number(
+                            contribution.amount
+                          ),
+                        0
+                      )
+                    "
+                  >
 
                     <div
                       v-for="(contribution, index) in item.contributions"
-                      :key="contribution._id || index"
+                      :key="
+                        contribution._id ||
+                        index
+                      "
                       class="contribution-detail amount"
                     >
 
-                      ₱{{ formatAmount(contribution.amount) }}
+                      ₱{{ formatAmount(
+                        contribution.amount
+                      ) }}
 
                     </div>
 
                   </td>
 
 
-                  <!-- Total -->
-                  <td class="text-end">
+                  <!-- =========================
+                       6. TOTAL
+                  ========================== -->
+                  <td
+                    class="text-end"
+                    :data-order="
+                      item.totalAmount
+                    "
+                  >
 
                     <span class="total-amount">
-                      ₱{{ formatAmount(item.totalAmount) }}
+                      ₱{{ formatAmount(
+                        item.totalAmount
+                      ) }}
                     </span>
 
                   </td>
 
 
-                  <!-- Actions -->
+                  <!-- =========================
+                       7. ACTIONS
+                  ========================== -->
                   <td class="text-center">
 
                     <div
                       v-for="(contribution, index) in item.contributions"
-                      :key="contribution._id || index"
+                      :key="
+                        contribution._id ||
+                        index
+                      "
                       class="contribution-detail"
                     >
 
-                      <div class="d-flex justify-content-center gap-2">
+                      <div
+                        class="d-flex justify-content-center gap-2"
+                      >
 
                         <!-- Edit -->
                         <router-link
-                          :to="`/contributions/edit/${contribution._id}`"
+                          :to="
+                            `/contributions/edit/${contribution._id}`
+                          "
                           class="btn btn-sm edit-btn"
                         >
 
-                          <i class="bi bi-pencil me-1"></i>
+                          <i
+                            class="bi bi-pencil me-1"
+                          ></i>
 
                           Edit
 
@@ -262,10 +342,16 @@
                         <button
                           type="button"
                           class="btn btn-sm archive-btn"
-                          @click="archiveContribution(contribution._id)"
+                          @click="
+                            archiveContribution(
+                              contribution._id
+                            )
+                          "
                         >
 
-                          <i class="bi bi-archive me-1"></i>
+                          <i
+                            class="bi bi-archive me-1"
+                          ></i>
 
                           Archive
 
@@ -275,21 +361,6 @@
 
                     </div>
 
-                  </td>
-
-                </tr>
-
-
-                <!-- Empty -->
-                <tr
-                  v-if="groupedContributions.length === 0"
-                >
-
-                  <td
-                    colspan="6"
-                    class="text-center py-5 text-muted"
-                  >
-                    No contributions found.
                   </td>
 
                 </tr>
@@ -316,7 +387,10 @@
 import {
   ref,
   computed,
-  onMounted
+  nextTick,
+  onMounted,
+  onBeforeUnmount,
+  watch
 } from "vue";
 
 import {
@@ -332,6 +406,19 @@ import {
 import "notyf/notyf.min.css";
 
 
+// =========================
+// DataTables
+// =========================
+
+import DataTable from "datatables.net-bs5";
+
+import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
+
+
+// =========================
+// Router / Notifications
+// =========================
+
 const router =
   useRouter();
 
@@ -345,6 +432,17 @@ const notyf =
 
 const contributions =
   ref([]);
+
+
+// =========================
+// DataTable Reference
+// =========================
+
+const contributionTable =
+  ref(null);
+
+let dataTable =
+  null;
 
 
 // =========================
@@ -391,6 +489,153 @@ const checkAuthentication = () => {
 
 
 // =========================
+// Initialize DataTable
+// =========================
+
+const initializeDataTable = async () => {
+
+  await nextTick();
+
+
+  // Table does not exist yet
+  if (
+    !contributionTable.value
+  ) {
+
+    return;
+
+  }
+
+
+  // Destroy existing DataTable
+  if (dataTable) {
+
+    dataTable.destroy();
+
+    dataTable =
+      null;
+
+  }
+
+
+  // =========================
+  // Initialize
+  // =========================
+
+  dataTable =
+    new DataTable(
+      contributionTable.value,
+      {
+
+        // Newest date first
+        order: [
+          [
+            1,
+            "desc"
+          ]
+        ],
+
+
+        pageLength:
+          10,
+
+
+        lengthMenu: [
+
+          [
+            10,
+            25,
+            50,
+            100
+          ],
+
+          [
+            "10",
+            "25",
+            "50",
+            "100"
+          ]
+
+        ],
+
+
+        columnDefs: [
+
+          // Actions
+          {
+            targets:
+              6,
+
+            orderable:
+              false,
+
+            searchable:
+              false
+          }
+
+        ],
+
+
+        language: {
+
+          search:
+            "Search:",
+
+          lengthMenu:
+            "Show _MENU_ entries",
+
+          info:
+            "Showing _START_ to _END_ of _TOTAL_ contributions",
+
+          infoEmpty:
+            "No contributions found",
+
+          zeroRecords:
+            "No matching contributions found",
+
+          paginate: {
+
+            first:
+              "First",
+
+            last:
+              "Last",
+
+            next:
+              "Next",
+
+            previous:
+              "Previous"
+
+          }
+
+        }
+
+      }
+    );
+
+};
+
+
+// =========================
+// Destroy DataTable
+// =========================
+
+const destroyDataTable = () => {
+
+  if (dataTable) {
+
+    dataTable.destroy();
+
+    dataTable =
+      null;
+
+  }
+
+};
+
+
+// =========================
 // Get All Contributions
 // =========================
 
@@ -411,7 +656,9 @@ const getContributions = async () => {
       );
 
 
-    console.log(response);
+    console.log(
+      response
+    );
 
 
     contributions.value =
@@ -420,7 +667,9 @@ const getContributions = async () => {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
 
     // Token expired / unauthorized
@@ -499,6 +748,17 @@ const archiveContribution = async (
 
   try {
 
+    // =========================
+    // Destroy DataTable First
+    // =========================
+
+    destroyDataTable();
+
+
+    // =========================
+    // Archive
+    // =========================
+
     await api.delete(
       `/contributions/${contributionId}`
     );
@@ -509,8 +769,10 @@ const archiveContribution = async (
     );
 
 
-    // Remove archived contribution
-    // from the current list
+    // =========================
+    // Remove From Current List
+    // =========================
+
     contributions.value =
       contributions.value.filter(
         contribution =>
@@ -521,7 +783,9 @@ const archiveContribution = async (
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
 
     // Token expired / unauthorized
@@ -552,6 +816,10 @@ const archiveContribution = async (
       "Unable to archive contribution."
     );
 
+
+    // Reinitialize after error
+    await initializeDataTable();
+
   }
 
 };
@@ -573,6 +841,7 @@ const groupedContributions =
         // IMPORTANT:
         // Use contribution date,
         // not createdAt.
+
         if (
           !item.user ||
           !item.date
@@ -603,20 +872,22 @@ const groupedContributions =
           )}`;
 
 
-        // Group by:
-        // User + Contribution Date
+        // =========================
+        // Group By User + Date
+        // =========================
+
         const key =
           `${item.user._id}-${dateKey}`;
 
 
-        if (!groups[key]) {
+        if (
+          !groups[key]
+        ) {
 
           groups[key] = {
 
             key,
 
-            // IMPORTANT:
-            // Store contribution date
             date:
               item.date,
 
@@ -636,37 +907,48 @@ const groupedContributions =
         }
 
 
-        groups[key].contributions.push({
+        // =========================
+        // Add Contribution
+        // =========================
 
-          _id:
-            item._id,
+        groups[key]
+          .contributions
+          .push({
 
-          crNumber:
+            _id:
+              item._id,
+
+            crNumber:
               item.crNumber,
 
-          numberOfParticipants:
+            numberOfParticipants:
               Number(
                 item.numberOfParticipants
               ) || 1,
 
-          contributedTo:
-            item.contributedTo,
+            contributedTo:
+              item.contributedTo,
 
-          collectionType:
-            item.collectionType,
+            collectionType:
+              item.collectionType,
 
-          description:
-            item.description,
+            description:
+              item.description,
 
-          amount:
-            Number(
-              item.amount
-            ) || 0
+            amount:
+              Number(
+                item.amount
+              ) || 0
 
-        });
+          });
 
 
-        groups[key].totalAmount +=
+        // =========================
+        // Add Total
+        // =========================
+
+        groups[key]
+          .totalAmount +=
           Number(
             item.amount
           ) || 0;
@@ -675,16 +957,37 @@ const groupedContributions =
     );
 
 
-    // Newest contribution date first
+    // =========================
+    // Default Date Sorting
+    // =========================
+
     return Object.values(
       groups
     ).sort(
       (a, b) =>
-        new Date(b.date) -
-        new Date(a.date)
+        new Date(
+          b.date
+        ) -
+        new Date(
+          a.date
+        )
     );
 
   });
+
+
+// =========================
+// Watch Grouped Data
+// =========================
+
+watch(
+  groupedContributions,
+  async () => {
+
+    await initializeDataTable();
+
+  }
+);
 
 
 // =========================
@@ -753,20 +1056,33 @@ const formatAmount = (
 // Load Data
 // =========================
 
-onMounted(() => {
+onMounted(
+  async () => {
 
-  // Stop immediately if not logged in
-  if (
-    !checkAuthentication()
-  ) {
+    // Stop immediately if not logged in
+    if (
+      !checkAuthentication()
+    ) {
 
-    return;
+      return;
+
+    }
+
+
+    // User is logged in
+    await getContributions();
 
   }
+);
 
 
-  // User is logged in
-  getContributions();
+// =========================
+// Cleanup
+// =========================
+
+onBeforeUnmount(() => {
+
+  destroyDataTable();
 
 });
 
@@ -893,6 +1209,31 @@ onMounted(() => {
 
 }
 
+
+/* =========================
+   CR Number
+========================= */
+
+.cr-number {
+
+  display:
+    block;
+
+  color:
+    #1e5a8a;
+
+  font-size:
+    13px;
+
+  font-weight:
+    600;
+
+  margin-bottom:
+    3px;
+
+}
+
+
 /* =========================
    Contribution Details
 ========================= */
@@ -1003,6 +1344,98 @@ onMounted(() => {
 
   font-weight:
     700;
+
+}
+
+
+/* =========================
+   DataTables
+========================= */
+
+:deep(.dt-container) {
+
+  padding:
+    16px 18px;
+
+}
+
+
+:deep(.dt-search) {
+
+  margin-bottom:
+    15px;
+
+}
+
+
+:deep(.dt-search input) {
+
+  margin-left:
+    8px;
+
+  border:
+    1px solid #dce3e9;
+
+  border-radius:
+    7px;
+
+  padding:
+    7px 10px;
+
+}
+
+
+:deep(.dt-length select) {
+
+  border:
+    1px solid #dce3e9;
+
+  border-radius:
+    7px;
+
+  padding:
+    5px 8px;
+
+}
+
+
+:deep(.dt-info) {
+
+  color:
+    #6b7c8f;
+
+  font-size:
+    14px;
+
+}
+
+
+:deep(.dt-paging .pagination) {
+
+  margin-bottom:
+    0;
+
+}
+
+
+:deep(.dt-paging .page-link) {
+
+  color:
+    #1e5a8a;
+
+}
+
+
+:deep(.dt-paging .active .page-link) {
+
+  color:
+    #ffffff;
+
+  background:
+    #1e5a8a;
+
+  border-color:
+    #1e5a8a;
 
 }
 

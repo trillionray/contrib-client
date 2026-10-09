@@ -918,1120 +918,388 @@ const groupedContributions =
   });
 
 
-const exportToExcel = async () => {
-
+  const exportToExcel = async () => {
+  try {
   // =========================================================
   // PREPARE DATA
   // =========================================================
 
+
   const data = [];
 
-  groupedContributions.value.forEach(
-    item => {
+  groupedContributions.value.forEach(item => {
+    item.contributions.forEach(contribution => {
+      data.push({
+        "CR #": String(contribution.crNumber ?? "").trim(),
+        "Date": item.date,
+        "Contributor": item.fullName || "",
+        "User ID": item.userId || "",
+        "Contributed To": String(
+          contribution.contributedTo ?? ""
+        ).trim(),
+        "Collection Type": contribution.collectionType || "",
+        "Description": contribution.description || "",
+        "Participants":
+          Number(contribution.numberOfParticipants) || 1,
+        "Amount": Number(contribution.amount) || 0,
+        "Total": Number(item.totalAmount) || 0
+      });
+    });
+  });
 
-      const groupTotal =
-        Number(item.totalAmount) || 0;
-
-      item.contributions.forEach(
-        contribution => {
-
-          data.push({
-
-            "CR #":
-              contribution.crNumber ||
-              "",
-
-            "Date":
-              item.date,
-
-            "Contributor":
-              item.fullName ||
-              "",
-
-            "User ID":
-              item.userId ||
-              "",
-
-            "Contributed To":
-              contribution.contributedTo ||
-              "",
-
-            "Collection Type":
-              contribution.collectionType ||
-              "",
-
-            "Description":
-              contribution.description ||
-              "",
-
-            "Participants":
-              Number(
-                contribution.numberOfParticipants
-              ) || 1,
-
-            "Amount":
-              Number(
-                contribution.amount
-              ) || 0,
-
-            "Total":
-              groupTotal
-
-          });
-
-        }
-      );
-
-    }
-  );
-
-
-  if (data.length === 0) {
-
-    notyf.error(
-      "No contributions available to export."
-    );
-
+  if (!data.length) {
+    notyf.error("No contributions available to export.");
     return;
-
   }
 
-
   // =========================================================
-  // WORKBOOK
-  // =========================================================
-
-  const workbook =
-    new ExcelJS.Workbook();
-
-
-  workbook.calcProperties.fullCalcOnLoad =
-    true;
-
-  workbook.calcProperties.forceFullCalc =
-    true;
-
-  workbook.calcProperties.calcMode =
-    "auto";
-
-
-  // =========================================================
-  // IN RECORDS
+  // CREATE UNIQUE COMBINED DROPDOWN OPTIONS
   // =========================================================
 
-  const inRecordsSheet =
-    workbook.addWorksheet(
-      "In Records"
+  const contributionOptions = [];
+  const optionLookup = new Map();
+
+  data.forEach(record => {
+    const crNumber = record["CR #"];
+    const contributedTo = record["Contributed To"];
+
+    if (!crNumber || !contributedTo) return;
+
+    const key = JSON.stringify([
+      crNumber,
+      contributedTo
+    ]);
+
+    if (!optionLookup.has(key)) {
+      const label = `${crNumber} | ${contributedTo}`;
+
+      const option = {
+        crNumber,
+        contributedTo,
+        label
+      };
+
+      optionLookup.set(key, option);
+      contributionOptions.push(option);
+    }
+  });
+
+  if (!contributionOptions.length) {
+    notyf.error(
+      "No valid CR number and contribution combinations were found."
     );
+    return;
+  }
 
+  // =========================================================
+  // CREATE WORKBOOK
+  // =========================================================
+
+  const workbook = new ExcelJS.Workbook();
+
+  workbook.calcProperties.fullCalcOnLoad = true;
+  workbook.calcProperties.forceFullCalc = true;
+  workbook.calcProperties.calcMode = "auto";
+
+  // =========================================================
+  // IN RECORDS SHEET
+  // =========================================================
+
+  const inRecordsSheet = workbook.addWorksheet("In Records");
 
   inRecordsSheet.columns = [
+    { header: "CR #", key: "crNumber", width: 15 },
+    { header: "Date", key: "date", width: 18 },
+    { header: "Contributor", key: "contributor", width: 30 },
+    { header: "User ID", key: "userId", width: 15 },
+    { header: "Contributed To", key: "contributedTo", width: 30 },
+    { header: "Collection Type", key: "collectionType", width: 20 },
+    { header: "Description", key: "description", width: 45 },
+    { header: "Participants", key: "participants", width: 15 },
+    { header: "Amount", key: "amount", width: 15 },
+    { header: "Total", key: "total", width: 15 }
+  ];
 
-    {
-      header: "CR #",
-      key: "crNumber",
-      width: 15
-    },
+  data.forEach(record => {
+    const parsedDate = record["Date"]
+      ? new Date(record["Date"])
+      : null;
 
-    {
-      header: "Date",
-      key: "date",
-      width: 18
-    },
+    inRecordsSheet.addRow({
+      crNumber: record["CR #"],
+      date:
+        parsedDate &&
+        !Number.isNaN(parsedDate.getTime())
+          ? parsedDate
+          : "",
+      contributor: record["Contributor"],
+      userId: record["User ID"],
+      contributedTo: record["Contributed To"],
+      collectionType: record["Collection Type"],
+      description: record["Description"],
+      participants: record["Participants"],
+      amount: record["Amount"],
+      total: record["Total"]
+    });
+  });
 
-    {
-      header: "Contributor",
-      key: "contributor",
-      width: 30
-    },
+  inRecordsSheet.getRow(1).font = { bold: true };
 
-    {
-      header: "User ID",
-      key: "userId",
-      width: 15
-    },
+  inRecordsSheet.getRow(1).alignment = {
+    vertical: "middle",
+    horizontal: "center"
+  };
 
+  inRecordsSheet.getRow(1).height = 22;
+
+  inRecordsSheet.getColumn("date").numFmt = "mmm d, yyyy";
+  inRecordsSheet.getColumn("amount").numFmt = "₱#,##0.00";
+  inRecordsSheet.getColumn("total").numFmt = "₱#,##0.00";
+
+  inRecordsSheet.autoFilter = {
+    from: "A1",
+    to: `J${data.length + 1}`
+  };
+
+  // =========================================================
+  // LISTS SHEET — HIDDEN DROPDOWN SOURCE
+  // =========================================================
+
+  const listsSheet = workbook.addWorksheet("Lists");
+
+  listsSheet.state = "hidden";
+
+  listsSheet.columns = [
+    { header: "CR + Contribution", key: "label", width: 55 },
+    { header: "CR #", key: "crNumber", width: 20 },
     {
       header: "Contributed To",
       key: "contributedTo",
-      width: 25
-    },
-
-    {
-      header: "Collection Type",
-      key: "collectionType",
-      width: 20
-    },
-
-    {
-      header: "Description",
-      key: "description",
-      width: 45
-    },
-
-    {
-      header: "Participants",
-      key: "participants",
-      width: 15
-    },
-
-    {
-      header: "Amount",
-      key: "amount",
-      width: 15
-    },
-
-    {
-      header: "Total",
-      key: "total",
-      width: 15
+      width: 35
     }
-
   ];
 
+  contributionOptions.forEach(option => {
+    listsSheet.addRow({
+      label: option.label,
+      crNumber: option.crNumber,
+      contributedTo: option.contributedTo
+    });
+  });
 
-  // =========================================================
-  // ADD IN RECORDS
-  // =========================================================
+  listsSheet.getRow(1).font = { bold: true };
 
-  data.forEach(
-    record => {
-
-      inRecordsSheet.addRow({
-
-        crNumber:
-          record["CR #"],
-
-        date:
-          record["Date"]
-            ? new Date(record["Date"])
-            : "",
-
-        contributor:
-          record["Contributor"],
-
-        userId:
-          record["User ID"],
-
-        contributedTo:
-          record["Contributed To"],
-
-        collectionType:
-          record["Collection Type"],
-
-        description:
-          record["Description"],
-
-        participants:
-          record["Participants"],
-
-        amount:
-          record["Amount"],
-
-        total:
-          record["Total"]
-
-      });
-
-    }
+  workbook.definedNames.add(
+    `Lists!$A$2:$A$${contributionOptions.length + 1}`,
+    "CR_Contribution_List"
   );
 
-
   // =========================================================
-  // FORMAT IN RECORDS
-  // =========================================================
-
-  const inHeader =
-    inRecordsSheet.getRow(1);
-
-
-  inHeader.font = {
-    bold: true
-  };
-
-
-  inHeader.alignment = {
-
-    vertical: "middle",
-
-    horizontal: "center"
-
-  };
-
-
-  inHeader.height =
-    22;
-
-
-  inRecordsSheet
-    .getColumn("date")
-    .numFmt =
-    "mmm d, yyyy";
-
-
-  inRecordsSheet
-    .getColumn("amount")
-    .numFmt =
-    "₱#,##0.00";
-
-
-  inRecordsSheet
-    .getColumn("total")
-    .numFmt =
-    "₱#,##0.00";
-
-
-  inRecordsSheet.autoFilter = {
-
-    from: "A1",
-
-    to: "J1"
-
-  };
-
-
-  // =========================================================
-  // GET UNIQUE CR NUMBERS
+  // LEDGER SHEET — SIX COLUMNS ONLY
   // =========================================================
 
-  const crNumbers = [
-
-    ...new Set(
-
-      data
-        .map(
-          record =>
-            String(
-              record["CR #"] || ""
-            ).trim()
-        )
-        .filter(
-          value =>
-            value !== ""
-        )
-
-    )
-
-  ];
-
-
-  // =========================================================
-  // CREATE HIDDEN LISTS SHEET
-  // =========================================================
-
-  const listsSheet =
-    workbook.addWorksheet(
-      "Lists"
-    );
-
-
-  listsSheet.state =
-    "hidden";
-
-
-  // =========================================================
-  // LISTS STRUCTURE
-  //
-  // A = CR #
-  // B = ContributedTo
-  //
-  // D = CR Numbers
-  //
-  // =========================================================
-
-  listsSheet.getCell(
-    "A1"
-  ).value =
-    "CR #";
-
-
-  listsSheet.getCell(
-    "B1"
-  ).value =
-    "ContributedTo";
-
-
-  listsSheet.getCell(
-    "D1"
-  ).value =
-    "CR Numbers";
-
-
-  // =========================================================
-  // BUILD CONTRIBUTION MAP
-  // =========================================================
-
-  const contributedByCR =
-    {};
-
-
-  data.forEach(
-    record => {
-
-      const crNumber =
-        String(
-          record["CR #"] || ""
-        ).trim();
-
-
-      const contributedTo =
-        String(
-          record["Contributed To"] || ""
-        ).trim();
-
-
-      if (
-        !crNumber ||
-        !contributedTo
-      ) {
-
-        return;
-
-      }
-
-
-      if (
-        !contributedByCR[
-          crNumber
-        ]
-      ) {
-
-        contributedByCR[
-          crNumber
-        ] = [];
-
-      }
-
-
-      if (
-        !contributedByCR[
-          crNumber
-        ].includes(
-          contributedTo
-        )
-      ) {
-
-        contributedByCR[
-          crNumber
-        ].push(
-          contributedTo
-        );
-
-      }
-
-    }
-  );
-
-
-  // =========================================================
-  // WRITE CR NUMBERS
-  // =========================================================
-
-  crNumbers.forEach(
-    (
-      crNumber,
-      index
-    ) => {
-
-      listsSheet.getCell(
-        `D${index + 2}`
-      ).value =
-        crNumber;
-
-    }
-  );
-
-
-  // =========================================================
-  // WRITE CONTRIBUTED TO VALUES
-  // =========================================================
-
-  let listRow =
-    2;
-
-
-  const crRanges =
-    {};
-
-
-  crNumbers.forEach(
-    crNumber => {
-
-      const options =
-        contributedByCR[
-          crNumber
-        ] || [];
-
-
-      if (
-        options.length === 0
-      ) {
-
-        return;
-
-      }
-
-
-      const firstRow =
-        listRow;
-
-
-      options.forEach(
-        contributedTo => {
-
-          listsSheet.getCell(
-            `A${listRow}`
-          ).value =
-            crNumber;
-
-
-          listsSheet.getCell(
-            `B${listRow}`
-          ).value =
-            contributedTo;
-
-
-          listRow++;
-
-        }
-      );
-
-
-      const lastRow =
-        listRow - 1;
-
-
-      crRanges[
-        crNumber
-      ] = {
-
-        firstRow,
-
-        lastRow
-
-      };
-
-    }
-  );
-
-
-  listsSheet.getColumn(
-    "A"
-  ).width =
-    20;
-
-
-  listsSheet.getColumn(
-    "B"
-  ).width =
-    30;
-
-
-  listsSheet.getColumn(
-    "D"
-  ).width =
-    20;
-
-
-  // =========================================================
-  // CREATE NAMED RANGE FOR EACH CR
-  //
-  // IMPORTANT:
-  //
-  // ExcelJS syntax is:
-  //
-  // workbook.definedNames.add(
-  //   RANGE,
-  //   NAME
-  // );
-  //
-  // NOT:
-  //
-  // workbook.definedNames.add(
-  //   NAME,
-  //   RANGE
-  // );
-  // =========================================================
-
-  crNumbers.forEach(
-    crNumber => {
-
-      const range =
-        crRanges[
-          crNumber
-        ];
-
-
-      if (!range) {
-
-        return;
-
-      }
-
-
-      // Convert CR number into
-      // a valid Excel defined name.
-      //
-      // Example:
-      //
-      // CR-001
-      //
-      // becomes:
-      //
-      // CR_CR_001
-
-      const safeName =
-        `CR_${String(
-          crNumber
-        )
-          .replace(
-            /[^A-Za-z0-9_]/g,
-            "_"
-          )}`;
-
-
-      const rangeAddress =
-        `Lists!$B$${range.firstRow}:$B$${range.lastRow}`;
-
-
-      // CORRECT ARGUMENT ORDER
-      workbook.definedNames.add(
-        rangeAddress,
-        safeName
-      );
-
-    }
-  );
-
-
-  // =========================================================
-  // CREATE NAMED RANGE FOR CR DROPDOWN
-  // =========================================================
-
-  if (
-    crNumbers.length > 0
-  ) {
-
-    const crListRange =
-      `Lists!$D$2:$D$${crNumbers.length + 1}`;
-
-
-    workbook.definedNames.add(
-      crListRange,
-      "CR_Number_List"
-    );
-
-  }
-
-
-  // =========================================================
-  // LEDGER
-  // =========================================================
-
-  const ledgerSheet =
-    workbook.addWorksheet(
-      "Ledger"
-    );
-
+  const ledgerSheet = workbook.addWorksheet("Ledger");
 
   ledgerSheet.columns = [
-
+    { header: "Date", key: "date", width: 18 },
     {
-      header: "Date",
-      key: "date",
-      width: 18
+      header: "CR # | Contributed To",
+      key: "selection",
+      width: 45
     },
-
-    {
-      header: "CR #",
-      key: "crNumber",
-      width: 15
-    },
-
-    {
-      header: "ContributedTo",
-      key: "contributedTo",
-      width: 25
-    },
-
-    {
-      header: "IN",
-      key: "in",
-      width: 15
-    },
-
-    {
-      header: "Particular",
-      key: "particular",
-      width: 35
-    },
-
-    {
-      header: "OUT",
-      key: "out",
-      width: 15
-    },
-
-    {
-      header: "Balance",
-      key: "balance",
-      width: 18
-    }
-
+    { header: "IN", key: "in", width: 15 },
+    { header: "Particular", key: "particular", width: 35 },
+    { header: "OUT", key: "out", width: 15 },
+    { header: "Balance", key: "balance", width: 18 }
   ];
 
+  const ledgerHeader = ledgerSheet.getRow(1);
 
-  // =========================================================
-  // LEDGER HEADER
-  // =========================================================
-
-  const ledgerHeader =
-    ledgerSheet.getRow(1);
-
-
-  ledgerHeader.font = {
-    bold: true
-  };
-
+  ledgerHeader.font = { bold: true };
 
   ledgerHeader.alignment = {
-
     vertical: "middle",
-
-    horizontal: "center"
-
+    horizontal: "center",
+    wrapText: true
   };
 
-
-  ledgerHeader.height =
-    22;
-
+  ledgerHeader.height = 30;
 
   // =========================================================
-  // LEDGER ROWS
+  // LEDGER FORMULAS AND DROPDOWN
   // =========================================================
 
-  const ledgerRows =
-    100;
-
-
-  const lastRecordRow =
-    data.length + 1;
-
+  const lastRecordRow = data.length + 1;
+  const lastOptionRow = contributionOptions.length + 1;
+  const ledgerRows = 100;
 
   for (
     let rowNumber = 2;
-    rowNumber <=
-      ledgerRows + 1;
+    rowNumber <= ledgerRows + 1;
     rowNumber++
   ) {
+    const selectionCell = `B${rowNumber}`;
+    const dateCell = `A${rowNumber}`;
+    const inCell = `C${rowNumber}`;
+    const outCell = `E${rowNumber}`;
+    const balanceCell = `F${rowNumber}`;
 
-    // =======================================================
-    // CR # DROPDOWN
-    // =======================================================
+    // -------------------------------------------------------
+    // ONE DROPDOWN: CR NUMBER + CONTRIBUTED TO
+    // -------------------------------------------------------
 
-    if (
-      crNumbers.length > 0
-    ) {
+    ledgerSheet.getCell(selectionCell).dataValidation = {
+      type: "list",
+      allowBlank: true,
+      formulae: ["CR_Contribution_List"],
+      showErrorMessage: true,
+      errorTitle: "Invalid Selection",
+      error:
+        "Please select a CR number and contribution from the dropdown."
+    };
 
-      ledgerSheet
-        .getCell(
-          `B${rowNumber}`
-        )
-        .dataValidation = {
-
-          type:
-            "list",
-
-          allowBlank:
-            true,
-
-          formulae: [
-            "CR_Number_List"
-          ],
-
-          showErrorMessage:
-            true,
-
-          errorTitle:
-            "Invalid CR #",
-
-          error:
-            "Please select a CR # from the dropdown."
-
-        };
-
-    }
-
-
-    // =======================================================
-    // CONTRIBUTED TO DROPDOWN
-    //
-    // Depends on CR #
-    // =======================================================
-
-    ledgerSheet
-      .getCell(
-        `C${rowNumber}`
-      )
-      .dataValidation = {
-
-        type:
-          "list",
-
-        allowBlank:
-          true,
-
-        formulae: [
-
-          `INDIRECT("CR_"&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(B${rowNumber},"-","_")," ","_"),"/","_"))`
-
-        ],
-
-        showErrorMessage:
-          true,
-
-        errorTitle:
-          "Invalid Contribution",
-
-        error:
-          "Please select a ContributedTo value belonging to the selected CR #."
-
-      };
-
-
-    // =======================================================
+    // -------------------------------------------------------
     // DATE
-    // =======================================================
+    // Retrieve the first matching record using both CR
+    // number and Contributed To from the hidden Lists sheet.
+    // -------------------------------------------------------
 
-    ledgerSheet
-      .getCell(
-        `A${rowNumber}`
-      )
-      .value = {
+    ledgerSheet.getCell(dateCell).value = {
+      formula:
+        `IF(${selectionCell}="", "", IFERROR(` +
+        `INDEX('In Records'!$B$2:$B$${lastRecordRow},` +
+        `MATCH(1,INDEX(` +
+        `('In Records'!$A$2:$A$${lastRecordRow}=` +
+        `INDEX(Lists!$B$2:$B$${lastOptionRow},` +
+        `MATCH(${selectionCell},Lists!$A$2:$A$${lastOptionRow},0)))*` +
+        `('In Records'!$E$2:$E$${lastRecordRow}=` +
+        `INDEX(Lists!$C$2:$C$${lastOptionRow},` +
+        `MATCH(${selectionCell},Lists!$A$2:$A$${lastOptionRow},0))),` +
+        `0),0)), ""))`
+    };
 
-        formula:
-
-          `IF(` +
-
-          `B${rowNumber}=""` +
-
-          `,""` +
-
-          `,IFERROR(` +
-
-          `INDEX(` +
-
-          `'In Records'!$B$2:$B$${lastRecordRow}` +
-
-          `,MATCH(` +
-
-          `B${rowNumber}` +
-
-          `,'In Records'!$A$2:$A$${lastRecordRow}` +
-
-          `,0)` +
-
-          `)` +
-
-          `,"")` +
-
-          `)`
-
-      };
-
-
-    // =======================================================
+    // -------------------------------------------------------
     // IN
-    // =======================================================
+    // Sum amounts matching the selected CR and contribution.
+    // Return zero when no dropdown selection is made.
+    // -------------------------------------------------------
 
-    ledgerSheet
-      .getCell(
-        `D${rowNumber}`
-      )
-      .value = {
+    ledgerSheet.getCell(inCell).value = {
+      formula:
+        `IF(${selectionCell}="",0,SUMIFS(` +
+        `'In Records'!$I$2:$I$${lastRecordRow},` +
+        `'In Records'!$A$2:$A$${lastRecordRow},` +
+        `INDEX(Lists!$B$2:$B$${lastOptionRow},` +
+        `MATCH(${selectionCell},Lists!$A$2:$A$${lastOptionRow},0)),` +
+        `'In Records'!$E$2:$E$${lastRecordRow},` +
+        `INDEX(Lists!$C$2:$C$${lastOptionRow},` +
+        `MATCH(${selectionCell},Lists!$A$2:$A$${lastOptionRow},0))))`
+    };
 
-        formula:
-
-          `IF(` +
-
-          `OR(` +
-
-          `B${rowNumber}=""` +
-
-          `,C${rowNumber}=""` +
-
-          `)` +
-
-          `,""` +
-
-          `,SUMIFS(` +
-
-          `'In Records'!$I$2:$I$${lastRecordRow}` +
-
-          `,'In Records'!$A$2:$A$${lastRecordRow}` +
-
-          `,B${rowNumber}` +
-
-          `,'In Records'!$E$2:$E$${lastRecordRow}` +
-
-          `,C${rowNumber}` +
-
-          `)` +
-
-          `)`
-
-      };
-
-
-    // =======================================================
+    // -------------------------------------------------------
     // BALANCE
-    // =======================================================
+    // Zero when no dropdown selection is made.
+    // Otherwise, carry forward the previous balance and
+    // add IN minus OUT.
+    // -------------------------------------------------------
 
-    if (
-      rowNumber === 2
-    ) {
-
-      ledgerSheet
-        .getCell(
-          `G${rowNumber}`
-        )
-        .value = {
-
-          formula:
-
-            `IF(` +
-
-            `COUNTA(` +
-
-            `A${rowNumber}:F${rowNumber}` +
-
-            `)=0` +
-
-            `,""` +
-
-            `,N(D${rowNumber})` +
-
-            `-N(F${rowNumber})` +
-
-            `)`
-
-        };
-
+    if (rowNumber === 2) {
+      ledgerSheet.getCell(balanceCell).value = {
+        formula:
+          `IF(${selectionCell}="",0,` +
+          `N(${inCell})-N(${outCell}))`
+      };
     } else {
-
-      ledgerSheet
-        .getCell(
-          `G${rowNumber}`
-        )
-        .value = {
-
-          formula:
-
-            `IF(` +
-
-            `COUNTA(` +
-
-            `A${rowNumber}:F${rowNumber}` +
-
-            `)=0` +
-
-            `,""` +
-
-            `,N(G${rowNumber - 1})` +
-
-            `+N(D${rowNumber})` +
-
-            `-N(F${rowNumber})` +
-
-            `)`
-
-        };
-
+      ledgerSheet.getCell(balanceCell).value = {
+        formula:
+          `IF(${selectionCell}="",0,` +
+          `N(F${rowNumber - 1})+N(${inCell})-N(${outCell}))`
+      };
     }
-
   }
-
 
   // =========================================================
   // FORMATTING
   // =========================================================
 
-  ledgerSheet
-    .getColumn("date")
-    .numFmt =
-    "mmm d, yyyy";
+  ledgerSheet.getColumn("date").numFmt = "mmm d, yyyy";
 
+  ["in", "out", "balance"].forEach(key => {
+    ledgerSheet.getColumn(key).numFmt = "₱#,##0.00";
 
-  ledgerSheet
-    .getColumn("in")
-    .numFmt =
-    "₱#,##0.00";
-
-
-  ledgerSheet
-    .getColumn("out")
-    .numFmt =
-    "₱#,##0.00";
-
-
-  ledgerSheet
-    .getColumn("balance")
-    .numFmt =
-    "₱#,##0.00";
-
-
-  ledgerSheet
-    .getColumn("in")
-    .alignment = {
-
-      horizontal:
-        "right"
-
+    ledgerSheet.getColumn(key).alignment = {
+      horizontal: "right"
     };
-
-
-  ledgerSheet
-    .getColumn("out")
-    .alignment = {
-
-      horizontal:
-        "right"
-
-    };
-
-
-  ledgerSheet
-    .getColumn("balance")
-    .alignment = {
-
-      horizontal:
-        "right"
-
-    };
-
+  });
 
   ledgerSheet.views = [
-
     {
-
-      state:
-        "frozen",
-
-      ySplit:
-        1
-
+      state: "frozen",
+      ySplit: 1
     }
-
   ];
 
-
   ledgerSheet.autoFilter = {
-
-    from:
-      "A1",
-
-    to:
-      "G1"
-
+    from: "A1",
+    to: `F${ledgerRows + 1}`
   };
 
+  // =========================================================
+  // EXPORT XLSX FILE
+  // =========================================================
 
-  // =========================================================
-  // EXPORT
-  // =========================================================
+  const dateParts = new Intl.DateTimeFormat("en", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  const dateValues = Object.fromEntries(
+    dateParts.map(part => [part.type, part.value])
+  );
 
   const today =
-    new Date()
-      .toISOString()
-      .slice(
-        0,
-        10
-      );
+    `${dateValues.year}-${dateValues.month}-${dateValues.day}`;
 
+  const filename = `LedgerReport_${today}.xlsx`;
 
-  const filename =
-    `LedgerReport_${today}.xlsx`;
+  const buffer = await workbook.xlsx.writeBuffer();
 
+  const blob = new Blob([buffer], {
+    type:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
 
-  try {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
-    const buffer =
-      await workbook.xlsx.writeBuffer();
+  link.href = url;
+  link.download = filename;
 
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-    const blob =
-      new Blob(
-        [
-          buffer
-        ],
-        {
+  window.URL.revokeObjectURL(url);
 
-          type:
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-
-        }
-      );
-
-
-    const url =
-      window.URL.createObjectURL(
-        blob
-      );
-
-
-    const link =
-      document.createElement(
-        "a"
-      );
-
-
-    link.href =
-      url;
-
-
-    link.download =
-      filename;
-
-
-    document.body.appendChild(
-      link
-    );
-
-
-    link.click();
-
-
-    document.body.removeChild(
-      link
-    );
-
-
-    window.URL.revokeObjectURL(
-      url
-    );
-
-
-    notyf.success(
-      "Excel file exported successfully."
-    );
+  notyf.success("Excel file exported successfully.");
 
 
   } catch (error) {
-
-    console.error(
-      "Excel export error:",
-      error
-    );
+  console.error("Excel export error:", error);
 
 
-    notyf.error(
-      "Unable to create Excel file."
-    );
+  notyf.error("Unable to create Excel file.");
+
 
   }
+  };
 
-};
+
+
+  
+
 
 
 // =========================

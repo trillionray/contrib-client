@@ -1,5 +1,4 @@
 <template>
-
     <!-- User Contribution Modal -->
     <div
         v-if="selectedUser"
@@ -7,9 +6,7 @@
         @click.self="closeUserModal"
     >
         <div class="custom-modal">
-
             <div class="custom-modal-header">
-
                 <div>
                     <h5 class="fw-bold mb-1">
                         {{ selectedUser.fullName || "Unknown User" }}
@@ -27,36 +24,23 @@
                     class="btn-close"
                     @click="closeUserModal"
                 ></button>
-
             </div>
 
             <div class="custom-modal-body">
-
                 <!-- User Summary -->
                 <div class="row g-3 mb-4">
-
                     <div class="col-md-4">
-
                         <div class="info-box">
-
-                            <small class="text-muted">
-                                User ID
-                            </small>
-
+                            <small class="text-muted">User ID</small>
                             <div class="fw-bold">
                                 {{ selectedUser.userId || "No User ID" }}
                             </div>
-
                         </div>
-
                     </div>
 
                     <div class="col-md-4">
                         <div class="info-box">
-                            <small class="text-muted">
-                                Designation
-                            </small>
-
+                            <small class="text-muted">Designation</small>
                             <div class="fw-bold">
                                 {{ selectedUser.designation || "No Designation" }}
                             </div>
@@ -64,46 +48,26 @@
                     </div>
 
                     <div class="col-md-4">
-
                         <div class="info-box">
-
-                            <small class="text-muted">
-                                Contributions
-                            </small>
-
+                            <small class="text-muted">Contributions</small>
                             <div class="fw-bold">
                                 {{ selectedUser.contributionCount || 0 }}
                             </div>
-
                         </div>
-
                     </div>
 
                     <div class="col-md-4">
-
                         <div class="info-box">
-
-                            <small class="text-muted">
-                                Total Contribution
-                            </small>
-
+                            <small class="text-muted">Total Contribution</small>
                             <div class="fw-bold text-success">
-                                ₱{{
-                                    formatAmount(
-                                        selectedUser.totalContribution
-                                    )
-                                }}
+                                ₱{{ formatAmount(selectedUser.totalContribution) }}
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
 
                 <!-- Contribution History Header -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
-
                     <h6 class="fw-bold mb-0">
                         Contribution History
                     </h6>
@@ -112,7 +76,6 @@
                         {{ selectedUser.contributions?.length || 0 }}
                         record(s)
                     </span>
-
                 </div>
 
                 <!-- No Contributions -->
@@ -123,16 +86,12 @@
                     "
                     class="text-center text-muted py-5"
                 >
-
-                    <div class="fs-1 mb-2">
-                        —
-                    </div>
+                    <div class="fs-1 mb-2">—</div>
 
                     <div>
                         This user has no contribution records
                         for the selected date range.
                     </div>
-
                 </div>
 
                 <!-- Contribution Table -->
@@ -140,49 +99,20 @@
                     v-else
                     class="table-responsive"
                 >
-
-                    <table
-                        class="table table-bordered table-hover align-middle"
-                    >
-
+                    <table class="table table-bordered table-hover align-middle">
                         <thead class="table-light">
-
                             <tr>
-
-                                <th>
-                                    #
-                                </th>
-
-                                <th>
-                                    Date
-                                </th>
-
-                                <th>
-                                    Contributed To
-                                </th>
-
-                                <th>
-                                    Collection Type
-                                </th>
-
-                                <th>
-                                    Description
-                                </th>
-
-                                <th class="text-end">
-                                    Amount
-                                </th>
-
-                                <th>
-                                    Recorded
-                                </th>
-
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Contributed To</th>
+                                <th>Collection Type</th>
+                                <th>Description</th>
+                                <th class="text-end">Amount</th>
+                                <th>Recorded</th>
                             </tr>
-
                         </thead>
 
                         <tbody>
-
                             <tr
                                 v-for="(
                                     contribution,
@@ -190,10 +120,7 @@
                                 ) in selectedUser.contributions"
                                 :key="contribution._id"
                             >
-
-                                <td>
-                                    {{ index + 1 }}
-                                </td>
+                                <td>{{ index + 1 }}</td>
 
                                 <td>
                                     {{ formatDate(contribution.date) }}
@@ -213,45 +140,28 @@
                                     {{ contribution.description }}
                                 </td>
 
-                                <td
-                                    class="text-end fw-bold text-success"
-                                >
-                                    ₱{{
-                                        formatAmount(
-                                            contribution.amount
-                                        )
-                                    }}
+                                <td class="text-end fw-bold text-success">
+                                    ₱{{ formatAmount(contribution.amount) }}
                                 </td>
 
                                 <td>
                                     {{ formatDateTime(contribution.createdAt) }}
                                 </td>
-
                             </tr>
-
                         </tbody>
 
-                        <!-- Modal Totals -->
+                        <!-- Modal Totals: Always Show All Categories -->
                         <tfoot>
-
                             <!-- Grand Total -->
                             <tr>
-
-                                <th
-                                    colspan="2"
-                                    class="text-end"
-                                >
+                                <th colspan="2" class="text-end">
                                     Grand Total
                                 </th>
 
-                                <th
-                                    colspan="3"
-                                >
-
+                                <th colspan="3">
                                     <div class="d-flex flex-wrap gap-2">
-
                                         <span
-                                            v-for="contributedTo in contributedToColumns"
+                                            v-for="contributedTo in availableContributedToColumns"
                                             :key="`modal-grand-${contributedTo}`"
                                             class="badge bg-light text-dark border"
                                         >
@@ -264,44 +174,30 @@
                                                 )
                                             }}
                                         </span>
-
                                     </div>
-
                                 </th>
 
                                 <th class="text-end">
-
                                     ₱{{
                                         formatAmount(
                                             selectedUser.totalContribution
                                         )
                                     }}
-
                                 </th>
 
                                 <th></th>
-
                             </tr>
-
 
                             <!-- Online Total -->
                             <tr>
-
-                                <th
-                                    colspan="2"
-                                    class="text-end text-primary"
-                                >
+                                <th colspan="2" class="text-end text-primary">
                                     Online Total
                                 </th>
 
-                                <th
-                                    colspan="3"
-                                >
-
+                                <th colspan="3">
                                     <div class="d-flex flex-wrap gap-2">
-
                                         <span
-                                            v-for="contributedTo in contributedToColumns"
+                                            v-for="contributedTo in availableContributedToColumns"
                                             :key="`modal-online-${contributedTo}`"
                                             class="badge bg-primary-subtle text-primary border border-primary-subtle"
                                         >
@@ -314,44 +210,26 @@
                                                 )
                                             }}
                                         </span>
-
                                     </div>
-
                                 </th>
 
                                 <th class="text-end text-primary">
-
-                                    ₱{{
-                                        formatAmount(
-                                            selectedUserOnlineTotal
-                                        )
-                                    }}
-
+                                    ₱{{ formatAmount(selectedUserOnlineTotal) }}
                                 </th>
 
                                 <th></th>
-
                             </tr>
-
 
                             <!-- Cash Total -->
                             <tr>
-
-                                <th
-                                    colspan="2"
-                                    class="text-end text-success"
-                                >
+                                <th colspan="2" class="text-end text-success">
                                     Cash Total
                                 </th>
 
-                                <th
-                                    colspan="3"
-                                >
-
+                                <th colspan="3">
                                     <div class="d-flex flex-wrap gap-2">
-
                                         <span
-                                            v-for="contributedTo in contributedToColumns"
+                                            v-for="contributedTo in availableContributedToColumns"
                                             :key="`modal-cash-${contributedTo}`"
                                             class="badge bg-success-subtle text-success border border-success-subtle"
                                         >
@@ -364,35 +242,21 @@
                                                 )
                                             }}
                                         </span>
-
                                     </div>
-
                                 </th>
 
                                 <th class="text-end text-success">
-
-                                    ₱{{
-                                        formatAmount(
-                                            selectedUserCashTotal
-                                        )
-                                    }}
-
+                                    ₱{{ formatAmount(selectedUserCashTotal) }}
                                 </th>
 
                                 <th></th>
-
                             </tr>
-
                         </tfoot>
-
                     </table>
-
                 </div>
-
             </div>
 
             <div class="custom-modal-footer">
-
                 <button
                     type="button"
                     class="btn btn-secondary"
@@ -400,23 +264,16 @@
                 >
                     Close
                 </button>
-
             </div>
-
         </div>
     </div>
 
-
     <!-- Main Page -->
     <div class="contribution-page">
-
         <div class="container">
-
             <!-- Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-
                 <div>
-
                     <h2 class="fw-bold mb-1">
                         Contribution Marks
                     </h2>
@@ -424,14 +281,10 @@
                     <p class="text-muted mb-0">
                         View users and their contribution records by date range
                     </p>
-
                 </div>
 
-
-                <!-- HEADER -->
+                <!-- Header Actions -->
                 <div class="d-flex gap-2">
-
-                    <!-- Members -->
                     <router-link
                         to="/members"
                         class="btn btn-outline-primary"
@@ -439,8 +292,6 @@
                         Members
                     </router-link>
 
-
-                    <!-- Report -->
                     <router-link
                         to="/contributions/report"
                         class="btn btn-danger"
@@ -448,30 +299,21 @@
                         Report
                     </router-link>
 
-
-                    <!-- Add Contribution -->
                     <router-link
                         to="/contributions/add"
                         class="btn btn-danger"
                     >
                         Add Contribution
                     </router-link>
-
                 </div>
-
             </div>
-
 
             <!-- Date Range Filter -->
             <div class="card contribution-card shadow border-0 mb-4">
-
                 <div class="card-body">
-
                     <div class="row g-3 align-items-end">
-
                         <!-- Start Date -->
                         <div class="col-md-4">
-
                             <label class="form-label fw-semibold">
                                 Start Date
                             </label>
@@ -481,13 +323,10 @@
                                 type="date"
                                 class="form-control"
                             >
-
                         </div>
-
 
                         <!-- End Date -->
                         <div class="col-md-4">
-
                             <label class="form-label fw-semibold">
                                 End Date
                             </label>
@@ -497,12 +336,10 @@
                                 type="date"
                                 class="form-control"
                             >
-
                         </div>
 
-
+                        <!-- Date Actions -->
                         <div class="col-md-4 d-flex gap-2 flex-wrap">
-
                             <button
                                 type="button"
                                 class="btn btn-primary"
@@ -529,62 +366,141 @@
                             >
                                 Export Excel
                             </button>
-
                         </div>
-
                     </div>
-
 
                     <!-- Applied Date Range -->
                     <div
                         v-if="appliedStartDate || appliedEndDate"
                         class="mt-3"
                     >
-
                         <small class="text-muted">
-
                             Showing contributions from
-
                             <strong>
                                 {{ appliedStartDate || "Beginning" }}
                             </strong>
-
                             to
-
                             <strong>
                                 {{ appliedEndDate || "Present" }}
                             </strong>
-
                         </small>
-
                     </div>
 
-
-                    <div
-                        v-else
-                        class="mt-3"
-                    >
-
+                    <div v-else class="mt-3">
                         <small class="text-muted">
                             Showing all available contribution records
                         </small>
-
                     </div>
 
+                    <!-- Contributed To Checklist -->
+                    <div class="contributed-to-filter mt-4">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">
+                                    Filter Contribution Categories
+                                </h6>
+
+                                <small class="text-muted">
+                                    Select the categories to include in the
+                                    table totals and Excel report.
+                                </small>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    :disabled="
+                                        loading ||
+                                        availableContributedToColumns.length === 0 ||
+                                        selectedContributedTo.length ===
+                                            availableContributedToColumns.length
+                                    "
+                                    @click="selectAllContributedTo"
+                                >
+                                    Select All
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    :disabled="
+                                        loading ||
+                                        selectedContributedTo.length === 0
+                                    "
+                                    @click="clearAllContributedTo"
+                                >
+                                    Clear All
+                                </button>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="availableContributedToColumns.length > 0"
+                            class="contributed-to-checklist"
+                        >
+                            <label
+                                v-for="contributedTo in availableContributedToColumns"
+                                :key="`filter-${normalizeContributedTo(contributedTo)}`"
+                                class="contributed-to-option"
+                            >
+                                <input
+                                    type="checkbox"
+                                    class="form-check-input"
+                                    :checked="
+                                        isContributedToSelected(contributedTo)
+                                    "
+                                    :disabled="loading"
+                                    @change="
+                                        toggleContributedTo(
+                                            contributedTo,
+                                            $event.target.checked
+                                        )
+                                    "
+                                >
+
+                                <span>
+                                    {{ contributedTo }}
+                                </span>
+                            </label>
+                        </div>
+
+                        <div
+                            v-else
+                            class="text-muted small py-2"
+                        >
+                            No contribution categories are available for this
+                            date range.
+                        </div>
+
+                        <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <small class="text-muted">
+                                <strong>
+                                    {{ contributedToColumns.length }}
+                                </strong>
+                                of
+                                <strong>
+                                    {{ availableContributedToColumns.length }}
+                                </strong>
+                                categories included in the report.
+                            </small>
+
+                            <small
+                                v-if="contributedToColumns.length === 0"
+                                class="text-danger"
+                            >
+                                No categories selected. Report totals are ₱0.00.
+                            </small>
+                        </div>
+                    </div>
                 </div>
-
             </div>
-
 
             <!-- Summary -->
             <div class="row g-3 mb-4">
-
                 <div class="col-md-4">
-
                     <div class="card summary-card shadow border-0 h-100">
-
                         <div class="card-body">
-
                             <p class="text-muted mb-1">
                                 Total Users
                             </p>
@@ -592,20 +508,13 @@
                             <h3 class="fw-bold mb-0">
                                 {{ users.length }}
                             </h3>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
                 <div class="col-md-4">
-
                     <div class="card summary-card shadow border-0 h-100">
-
                         <div class="card-body">
-
                             <p class="text-muted mb-1">
                                 Users With Contributions
                             </p>
@@ -613,20 +522,13 @@
                             <h3 class="fw-bold mb-0">
                                 {{ usersWithContributions }}
                             </h3>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
                 <div class="col-md-4">
-
                     <div class="card summary-card shadow border-0 h-100">
-
                         <div class="card-body">
-
                             <p class="text-muted mb-1">
                                 Total Contributions
                             </p>
@@ -634,22 +536,16 @@
                             <h3 class="fw-bold mb-0">
                                 {{ totalContributionCount }}
                             </h3>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
 
             <!-- Loading -->
             <div
                 v-if="loading"
                 class="text-center py-5"
             >
-
                 <div
                     class="spinner-border text-warning"
                     role="status"
@@ -658,9 +554,7 @@
                 <p class="text-muted mt-3 mb-0">
                     Loading users and contributions...
                 </p>
-
             </div>
-
 
             <!-- Error -->
             <div
@@ -670,39 +564,24 @@
                 {{ errorMessage }}
             </div>
 
-
             <!-- Users Table -->
             <div
                 v-else
                 class="card contribution-card shadow border-0"
             >
-
                 <div class="card-body p-0">
-
                     <div class="table-responsive">
-
                         <table
                             ref="usersTable"
                             class="table table-hover align-middle mb-0"
                         >
-
                             <thead>
-
                                 <tr>
+                                    <th>User ID</th>
+                                    <th>Name</th>
+                                    <th>Designation</th>
 
-                                    <th>
-                                        User ID
-                                    </th>
-
-                                    <th>
-                                        Name
-                                    </th>
-
-                                    <th>
-                                        Designation
-                                    </th>
-
-                                    <!-- Dynamic Contribution Columns -->
+                                    <!-- Selected Dynamic Contribution Columns -->
                                     <th
                                         v-for="contributedTo in contributedToColumns"
                                         :key="contributedTo"
@@ -711,29 +590,18 @@
                                         {{ contributedTo }}
                                     </th>
 
-                                    <th class="text-end">
-                                        Total
-                                    </th>
-
-                                    <th class="text-center">
-                                        Details
-                                    </th>
-
+                                    <th class="text-end">Total</th>
+                                    <th class="text-center">Details</th>
                                 </tr>
-
                             </thead>
 
-
                             <tbody>
-
                                 <tr
                                     v-for="user in users"
                                     :key="user._id"
                                 >
-
                                     <!-- User ID -->
                                     <td>
-
                                         <span
                                             v-if="user.userId"
                                             class="fw-semibold"
@@ -747,17 +615,13 @@
                                         >
                                             No User ID
                                         </span>
-
                                     </td>
-
 
                                     <!-- Name -->
                                     <td>
-
                                         <div class="fw-semibold">
                                             {{ user.fullName || "Unknown User" }}
                                         </div>
-
                                     </td>
 
                                     <!-- Designation -->
@@ -777,15 +641,12 @@
                                         </span>
                                     </td>
 
-
                                     <!-- Contribution Cells -->
                                     <td
                                         v-for="contributedTo in contributedToColumns"
                                         :key="`${user._id}-${contributedTo}`"
                                         class="text-center contribution-cell-wrapper"
                                     >
-
-                                        <!-- Has Contribution -->
                                         <button
                                             v-if="
                                                 hasContribution(
@@ -802,8 +663,6 @@
                                                 )
                                             "
                                         >
-
-                                            <!-- Show Amount -->
                                             <span
                                                 v-if="
                                                     isAmountVisible(
@@ -822,44 +681,33 @@
                                                 }}
                                             </span>
 
-
-                                            <!-- Show Check -->
                                             <span
                                                 v-else
                                                 class="check-icon"
                                             >
                                                 ✓
                                             </span>
-
                                         </button>
 
-
-                                        <!-- No Contribution -->
                                         <span
                                             v-else
                                             class="no-contribution"
                                         >
                                             —
                                         </span>
-
                                     </td>
 
-
-                                    <!-- User Total -->
+                                    <!-- Selected Categories Total -->
                                     <td class="text-end fw-bold">
-
                                         ₱{{
                                             formatAmount(
-                                                user.totalContribution
+                                                getUserSelectedTotal(user)
                                             )
                                         }}
-
                                     </td>
-
 
                                     <!-- Details -->
                                     <td class="text-center">
-
                                         <button
                                             type="button"
                                             class="btn btn-sm btn-outline-primary"
@@ -867,34 +715,26 @@
                                         >
                                             View
                                         </button>
-
                                     </td>
-
                                 </tr>
-
                             </tbody>
-
 
                             <!-- Totals -->
                             <tfoot>
-
                                 <!-- Grand Total -->
                                 <tr>
-
                                     <th
-                                        colspan="2"
+                                        colspan="3"
                                         class="text-end"
                                     >
                                         Grand Total
                                     </th>
 
-                                    <!-- Per Contributed To -->
                                     <th
                                         v-for="contributedTo in contributedToColumns"
                                         :key="`total-${contributedTo}`"
                                         class="text-end"
                                     >
-
                                         ₱{{
                                             formatAmount(
                                                 getContributedToTotal(
@@ -902,42 +742,29 @@
                                                 )
                                             )
                                         }}
-
                                     </th>
 
-                                    <!-- Overall Total -->
                                     <th class="text-end">
-
-                                        ₱{{
-                                            formatAmount(
-                                                grandTotal
-                                            )
-                                        }}
-
+                                        ₱{{ formatAmount(grandTotal) }}
                                     </th>
 
                                     <th></th>
-
                                 </tr>
-
 
                                 <!-- Online Total -->
                                 <tr>
-
                                     <th
-                                        colspan="2"
+                                        colspan="3"
                                         class="text-end text-primary"
                                     >
                                         Online Total
                                     </th>
 
-                                    <!-- Per Contributed To Online -->
                                     <th
                                         v-for="contributedTo in contributedToColumns"
                                         :key="`online-total-${contributedTo}`"
                                         class="text-end text-primary"
                                     >
-
                                         ₱{{
                                             formatAmount(
                                                 getContributedToOnlineTotal(
@@ -945,42 +772,29 @@
                                                 )
                                             )
                                         }}
-
                                     </th>
 
-                                    <!-- Overall Online -->
                                     <th class="text-end text-primary">
-
-                                        ₱{{
-                                            formatAmount(
-                                                onlineTotal
-                                            )
-                                        }}
-
+                                        ₱{{ formatAmount(onlineTotal) }}
                                     </th>
 
                                     <th></th>
-
                                 </tr>
-
 
                                 <!-- Cash Total -->
                                 <tr>
-
                                     <th
-                                        colspan="2"
+                                        colspan="3"
                                         class="text-end text-success"
                                     >
                                         Cash Total
                                     </th>
 
-                                    <!-- Per Contributed To Cash -->
                                     <th
                                         v-for="contributedTo in contributedToColumns"
                                         :key="`cash-total-${contributedTo}`"
                                         class="text-end text-success"
                                     >
-
                                         ₱{{
                                             formatAmount(
                                                 getContributedToCashTotal(
@@ -988,43 +802,24 @@
                                                 )
                                             )
                                         }}
-
                                     </th>
 
-                                    <!-- Overall Cash -->
                                     <th class="text-end text-success">
-
-                                        ₱{{
-                                            formatAmount(
-                                                cashTotal
-                                            )
-                                        }}
-
+                                        ₱{{ formatAmount(cashTotal) }}
                                     </th>
 
                                     <th></th>
-
                                 </tr>
-
                             </tfoot>
-
                         </table>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </template>
 
-
 <script setup>
-
 import {
     ref,
     computed,
@@ -1063,15 +858,11 @@ const appliedDateRange = ref({
 });
 
 const appliedStartDate = computed(() => {
-
     return appliedDateRange.value.startDate;
-
 });
 
 const appliedEndDate = computed(() => {
-
     return appliedDateRange.value.endDate;
-
 });
 
 
@@ -1086,205 +877,259 @@ let dataTable = null;
 
 
 // Contribution amount visibility
-const visibleContributionAmounts = ref(
-    new Set()
-);
+const visibleContributionAmounts = ref(new Set());
+
+
+// Selected contribution categories for the report
+const selectedContributedTo = ref([]);
 
 
 // --------------------------------------------------
-// Computed
+// Normalize Category Names
+// --------------------------------------------------
+
+const normalizeContributedTo = value => {
+    return String(value || "")
+        .trim()
+        .toLowerCase();
+};
+
+
+// --------------------------------------------------
+// All Unique Contributed To Categories
+// The modal and checklist use this complete list.
+// Duplicate names differing only by capitalization
+// or surrounding spaces are treated as one category.
+// --------------------------------------------------
+
+const availableContributedToColumns = computed(() => {
+    const uniqueValues = new Map();
+
+    users.value.forEach(user => {
+        (user.contributions || []).forEach(contribution => {
+            const value = String(
+                contribution.contributedTo || ""
+            ).trim();
+
+            if (!value) {
+                return;
+            }
+
+            const normalized = normalizeContributedTo(value);
+
+            if (!uniqueValues.has(normalized)) {
+                uniqueValues.set(normalized, value);
+            }
+        });
+    });
+
+    return Array.from(uniqueValues.values()).sort(
+        (a, b) => a.localeCompare(b)
+    );
+});
+
+
+// --------------------------------------------------
+// Selected Categories Used by the Main Report
+// --------------------------------------------------
+
+const contributedToColumns = computed(() => {
+    const selected = new Set(
+        selectedContributedTo.value.map(
+            normalizeContributedTo
+        )
+    );
+
+    return availableContributedToColumns.value.filter(
+        contributedTo => selected.has(
+            normalizeContributedTo(contributedTo)
+        )
+    );
+});
+
+
+// --------------------------------------------------
+// Checklist Helpers
+// --------------------------------------------------
+
+const isContributedToSelected = contributedTo => {
+    return selectedContributedTo.value.some(
+        selected =>
+            normalizeContributedTo(selected) ===
+            normalizeContributedTo(contributedTo)
+    );
+};
+
+
+const selectAllContributedTo = async () => {
+    destroyDataTable();
+
+    selectedContributedTo.value = [
+        ...availableContributedToColumns.value
+    ];
+
+    await initializeDataTable();
+};
+
+
+const clearAllContributedTo = async () => {
+    destroyDataTable();
+
+    selectedContributedTo.value = [];
+
+    await initializeDataTable();
+};
+
+
+const toggleContributedTo = async (
+    contributedTo,
+    checked
+) => {
+    destroyDataTable();
+
+    const normalized = normalizeContributedTo(contributedTo);
+
+    const nextSelection = selectedContributedTo.value.filter(
+        selected =>
+            normalizeContributedTo(selected) !== normalized
+    );
+
+    if (checked) {
+        nextSelection.push(contributedTo);
+    }
+
+    selectedContributedTo.value = nextSelection;
+
+    await initializeDataTable();
+};
+
+
+// --------------------------------------------------
+// Computed Summary Values
 // --------------------------------------------------
 
 const usersWithContributions = computed(() => {
-
     return users.value.filter(
-        user =>
-            Number(
-                user.contributionCount
-            ) > 0
+        user => Number(user.contributionCount) > 0
     ).length;
-
 });
 
 
 const totalContributionCount = computed(() => {
-
     return users.value.reduce(
-        (
-            total,
-            user
-        ) => {
-
+        (total, user) => {
             return (
                 total +
-                (
-                    Number(
-                        user.contributionCount
-                    ) || 0
-                )
+                (Number(user.contributionCount) || 0)
             );
-
         },
         0
     );
-
-});
-
-
-const contributedToColumns = computed(() => {
-
-    const values = new Set();
-
-    users.value.forEach(
-        user => {
-
-            (
-                user.contributions || []
-            ).forEach(
-                contribution => {
-
-                    if (
-                        contribution.contributedTo &&
-                        contribution.contributedTo.trim()
-                    ) {
-
-                        values.add(
-                            contribution.contributedTo.trim()
-                        );
-
-                    }
-
-                }
-            );
-
-        }
-    );
-
-    return Array.from(values).sort(
-        (
-            a,
-            b
-        ) =>
-            a.localeCompare(b)
-    );
-
 });
 
 
 // --------------------------------------------------
 // Overall Online Total
+// Only selected categories are included.
 // --------------------------------------------------
 
 const onlineTotal = computed(() => {
+    const selected = new Set(
+        contributedToColumns.value.map(
+            normalizeContributedTo
+        )
+    );
 
     return users.value.reduce(
-        (
-            total,
-            user
-        ) => {
+        (total, user) => {
+            const userOnlineTotal = (
+                user.contributions || []
+            )
+                .filter(contribution => {
+                    const category = normalizeContributedTo(
+                        contribution.contributedTo
+                    );
 
-            return (
-                total +
-                (
-                    user.contributions || []
-                )
-                    .filter(
-                        contribution =>
-                            (
-                                contribution.collectionType ||
-                                ""
-                            )
-                                .trim()
-                                .toLowerCase() ===
-                            "online"
-                    )
-                    .reduce(
-                        (
-                            subtotal,
-                            contribution
-                        ) => {
+                    const collectionType = String(
+                        contribution.collectionType || ""
+                    ).trim().toLowerCase();
 
-                            return (
-                                subtotal +
-                                (
-                                    Number(
-                                        contribution.amount
-                                    ) || 0
-                                )
-                            );
+                    return (
+                        selected.has(category) &&
+                        collectionType === "online"
+                    );
+                })
+                .reduce(
+                    (subtotal, contribution) => {
+                        return (
+                            subtotal +
+                            (Number(contribution.amount) || 0)
+                        );
+                    },
+                    0
+                );
 
-                        },
-                        0
-                    )
-            );
-
+            return total + userOnlineTotal;
         },
         0
     );
-
 });
 
 
 // --------------------------------------------------
 // Overall Cash Total
+// Only selected categories are included.
 // --------------------------------------------------
 
 const cashTotal = computed(() => {
+    const selected = new Set(
+        contributedToColumns.value.map(
+            normalizeContributedTo
+        )
+    );
 
     return users.value.reduce(
-        (
-            total,
-            user
-        ) => {
+        (total, user) => {
+            const userCashTotal = (
+                user.contributions || []
+            )
+                .filter(contribution => {
+                    const category = normalizeContributedTo(
+                        contribution.contributedTo
+                    );
 
-            return (
-                total +
-                (
-                    user.contributions || []
-                )
-                    .filter(
-                        contribution =>
-                            (
-                                contribution.collectionType ||
-                                ""
-                            )
-                                .trim()
-                                .toLowerCase() ===
-                            "cash"
-                    )
-                    .reduce(
-                        (
-                            subtotal,
-                            contribution
-                        ) => {
+                    const collectionType = String(
+                        contribution.collectionType || ""
+                    ).trim().toLowerCase();
 
-                            return (
-                                subtotal +
-                                (
-                                    Number(
-                                        contribution.amount
-                                    ) || 0
-                                )
-                            );
+                    return (
+                        selected.has(category) &&
+                        collectionType === "cash"
+                    );
+                })
+                .reduce(
+                    (subtotal, contribution) => {
+                        return (
+                            subtotal +
+                            (Number(contribution.amount) || 0)
+                        );
+                    },
+                    0
+                );
 
-                        },
-                        0
-                    )
-            );
-
+            return total + userCashTotal;
         },
         0
     );
-
 });
 
 
 // --------------------------------------------------
 // Selected User Online Total
+// Modal totals remain independent of the checklist.
 // --------------------------------------------------
 
 const selectedUserOnlineTotal = computed(() => {
-
     if (!selectedUser.value) {
         return 0;
     }
@@ -1292,35 +1137,19 @@ const selectedUserOnlineTotal = computed(() => {
     return (
         selectedUser.value.contributions || []
     )
-        .filter(
-            contribution =>
-                (
-                    contribution.collectionType ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase() ===
-                "online"
-        )
-        .reduce(
-            (
-                total,
-                contribution
-            ) => {
-
-                return (
-                    total +
-                    (
-                        Number(
-                            contribution.amount
-                        ) || 0
-                    )
-                );
-
-            },
-            0
-        );
-
+        .filter(contribution => {
+            return (
+                String(
+                    contribution.collectionType || ""
+                ).trim().toLowerCase() === "online"
+            );
+        })
+        .reduce((total, contribution) => {
+            return (
+                total +
+                (Number(contribution.amount) || 0)
+            );
+        }, 0);
 });
 
 
@@ -1329,7 +1158,6 @@ const selectedUserOnlineTotal = computed(() => {
 // --------------------------------------------------
 
 const selectedUserCashTotal = computed(() => {
-
     if (!selectedUser.value) {
         return 0;
     }
@@ -1337,36 +1165,37 @@ const selectedUserCashTotal = computed(() => {
     return (
         selectedUser.value.contributions || []
     )
-        .filter(
-            contribution =>
-                (
-                    contribution.collectionType ||
-                    ""
-                )
-                    .trim()
-                    .toLowerCase() ===
-                "cash"
-        )
-        .reduce(
-            (
-                total,
-                contribution
-            ) => {
-
-                return (
-                    total +
-                    (
-                        Number(
-                            contribution.amount
-                        ) || 0
-                    )
-                );
-
-            },
-            0
-        );
-
+        .filter(contribution => {
+            return (
+                String(
+                    contribution.collectionType || ""
+                ).trim().toLowerCase() === "cash"
+            );
+        })
+        .reduce((total, contribution) => {
+            return (
+                total +
+                (Number(contribution.amount) || 0)
+            );
+        }, 0);
 });
+
+
+// --------------------------------------------------
+// User Total for Selected Categories
+// --------------------------------------------------
+
+const getUserSelectedTotal = user => {
+    return contributedToColumns.value.reduce(
+        (total, contributedTo) => {
+            return (
+                total +
+                getContributionAmount(user, contributedTo)
+            );
+        },
+        0
+    );
+};
 
 
 // --------------------------------------------------
@@ -1374,26 +1203,12 @@ const selectedUserCashTotal = computed(() => {
 // --------------------------------------------------
 
 const grandTotal = computed(() => {
-
     return users.value.reduce(
-        (
-            total,
-            user
-        ) => {
-
-            return (
-                total +
-                (
-                    Number(
-                        user.totalContribution
-                    ) || 0
-                )
-            );
-
+        (total, user) => {
+            return total + getUserSelectedTotal(user);
         },
         0
     );
-
 });
 
 
@@ -1402,22 +1217,17 @@ const grandTotal = computed(() => {
 // --------------------------------------------------
 
 const formatAmount = amount => {
-
-    return Number(
-        amount || 0
-    ).toLocaleString(
+    return Number(amount || 0).toLocaleString(
         "en-PH",
         {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }
     );
-
 };
 
 
 const formatDate = date => {
-
     if (!date) {
         return "—";
     }
@@ -1426,22 +1236,15 @@ const formatDate = date => {
         "en-PH",
         {
             timeZone: "Asia/Manila",
-
             year: "numeric",
-
             month: "short",
-
             day: "numeric"
         }
-    ).format(
-        new Date(date)
-    );
-
+    ).format(new Date(date));
 };
 
 
 const formatDateTime = date => {
-
     if (!date) {
         return "—";
     }
@@ -1450,21 +1253,13 @@ const formatDateTime = date => {
         "en-PH",
         {
             timeZone: "Asia/Manila",
-
             year: "numeric",
-
             month: "short",
-
             day: "numeric",
-
             hour: "numeric",
-
             minute: "2-digit"
         }
-    ).format(
-        new Date(date)
-    );
-
+    ).format(new Date(date));
 };
 
 
@@ -1472,39 +1267,19 @@ const formatDateTime = date => {
 // Contribution Helpers
 // --------------------------------------------------
 
-const normalizeContributedTo = value => {
-
-    return (
-        value || ""
-    )
-        .trim()
-        .toLowerCase();
-
-};
-
-
 const hasContribution = (
     user,
     contributedTo
 ) => {
-
     return (
         user.contributions || []
-    ).some(
-        contribution => {
-
-            return (
-                normalizeContributedTo(
-                    contribution.contributedTo
-                ) ===
-                normalizeContributedTo(
-                    contributedTo
-                )
-            );
-
-        }
-    );
-
+    ).some(contribution => {
+        return (
+            normalizeContributedTo(
+                contribution.contributedTo
+            ) === normalizeContributedTo(contributedTo)
+        );
+    });
 };
 
 
@@ -1512,43 +1287,22 @@ const getContributionAmount = (
     user,
     contributedTo
 ) => {
-
     return (
         user.contributions || []
     )
-        .filter(
-            contribution => {
-
-                return (
-                    normalizeContributedTo(
-                        contribution.contributedTo
-                    ) ===
-                    normalizeContributedTo(
-                        contributedTo
-                    )
-                );
-
-            }
-        )
-        .reduce(
-            (
-                total,
-                contribution
-            ) => {
-
-                return (
-                    total +
-                    (
-                        Number(
-                            contribution.amount
-                        ) || 0
-                    )
-                );
-
-            },
-            0
-        );
-
+        .filter(contribution => {
+            return (
+                normalizeContributedTo(
+                    contribution.contributedTo
+                ) === normalizeContributedTo(contributedTo)
+            );
+        })
+        .reduce((total, contribution) => {
+            return (
+                total +
+                (Number(contribution.amount) || 0)
+            );
+        }, 0);
 };
 
 
@@ -1556,11 +1310,7 @@ const getContributionCellKey = (
     userId,
     contributedTo
 ) => {
-
-    return (
-        `${userId}::${normalizeContributedTo(contributedTo)}`
-    );
-
+    return `${userId}::${normalizeContributedTo(contributedTo)}`;
 };
 
 
@@ -1568,14 +1318,9 @@ const isAmountVisible = (
     userId,
     contributedTo
 ) => {
-
     return visibleContributionAmounts.value.has(
-        getContributionCellKey(
-            userId,
-            contributedTo
-        )
+        getContributionCellKey(userId, contributedTo)
     );
-
 };
 
 
@@ -1583,33 +1328,22 @@ const toggleContributionAmount = (
     userId,
     contributedTo
 ) => {
+    const key = getContributionCellKey(
+        userId,
+        contributedTo
+    );
 
-    const key =
-        getContributionCellKey(
-            userId,
-            contributedTo
-        );
+    const newSet = new Set(
+        visibleContributionAmounts.value
+    );
 
-    const newSet =
-        new Set(
-            visibleContributionAmounts.value
-        );
-
-    if (
-        newSet.has(key)
-    ) {
-
+    if (newSet.has(key)) {
         newSet.delete(key);
-
     } else {
-
         newSet.add(key);
-
     }
 
-    visibleContributionAmounts.value =
-        newSet;
-
+    visibleContributionAmounts.value = newSet;
 };
 
 
@@ -1617,28 +1351,16 @@ const toggleContributionAmount = (
 // Overall Contributed To Total
 // --------------------------------------------------
 
-const getContributedToTotal = (
-    contributedTo
-) => {
-
+const getContributedToTotal = contributedTo => {
     return users.value.reduce(
-        (
-            total,
-            user
-        ) => {
-
+        (total, user) => {
             return (
                 total +
-                getContributionAmount(
-                    user,
-                    contributedTo
-                )
+                getContributionAmount(user, contributedTo)
             );
-
         },
         0
     );
-
 };
 
 
@@ -1646,66 +1368,33 @@ const getContributedToTotal = (
 // Overall Contributed To Online Total
 // --------------------------------------------------
 
-const getContributedToOnlineTotal = (
-    contributedTo
-) => {
-
+const getContributedToOnlineTotal = contributedTo => {
     return users.value.reduce(
-        (
-            total,
-            user
-        ) => {
+        (total, user) => {
+            const categoryOnlineTotal = (
+                user.contributions || []
+            )
+                .filter(contribution => {
+                    return (
+                        normalizeContributedTo(
+                            contribution.contributedTo
+                        ) === normalizeContributedTo(contributedTo) &&
+                        String(
+                            contribution.collectionType || ""
+                        ).trim().toLowerCase() === "online"
+                    );
+                })
+                .reduce((subtotal, contribution) => {
+                    return (
+                        subtotal +
+                        (Number(contribution.amount) || 0)
+                    );
+                }, 0);
 
-            return (
-                total +
-                (
-                    user.contributions || []
-                )
-                    .filter(
-                        contribution => {
-
-                            return (
-                                normalizeContributedTo(
-                                    contribution.contributedTo
-                                ) ===
-                                normalizeContributedTo(
-                                    contributedTo
-                                ) &&
-                                (
-                                    contribution.collectionType ||
-                                    ""
-                                )
-                                    .trim()
-                                    .toLowerCase() ===
-                                "online"
-                            );
-
-                        }
-                    )
-                    .reduce(
-                        (
-                            subtotal,
-                            contribution
-                        ) => {
-
-                            return (
-                                subtotal +
-                                (
-                                    Number(
-                                        contribution.amount
-                                    ) || 0
-                                )
-                            );
-
-                        },
-                        0
-                    )
-            );
-
+            return total + categoryOnlineTotal;
         },
         0
     );
-
 };
 
 
@@ -1713,66 +1402,33 @@ const getContributedToOnlineTotal = (
 // Overall Contributed To Cash Total
 // --------------------------------------------------
 
-const getContributedToCashTotal = (
-    contributedTo
-) => {
-
+const getContributedToCashTotal = contributedTo => {
     return users.value.reduce(
-        (
-            total,
-            user
-        ) => {
+        (total, user) => {
+            const categoryCashTotal = (
+                user.contributions || []
+            )
+                .filter(contribution => {
+                    return (
+                        normalizeContributedTo(
+                            contribution.contributedTo
+                        ) === normalizeContributedTo(contributedTo) &&
+                        String(
+                            contribution.collectionType || ""
+                        ).trim().toLowerCase() === "cash"
+                    );
+                })
+                .reduce((subtotal, contribution) => {
+                    return (
+                        subtotal +
+                        (Number(contribution.amount) || 0)
+                    );
+                }, 0);
 
-            return (
-                total +
-                (
-                    user.contributions || []
-                )
-                    .filter(
-                        contribution => {
-
-                            return (
-                                normalizeContributedTo(
-                                    contribution.contributedTo
-                                ) ===
-                                normalizeContributedTo(
-                                    contributedTo
-                                ) &&
-                                (
-                                    contribution.collectionType ||
-                                    ""
-                                )
-                                    .trim()
-                                    .toLowerCase() ===
-                                "cash"
-                            );
-
-                        }
-                    )
-                    .reduce(
-                        (
-                            subtotal,
-                            contribution
-                        ) => {
-
-                            return (
-                                subtotal +
-                                (
-                                    Number(
-                                        contribution.amount
-                                    ) || 0
-                                )
-                            );
-
-                        },
-                        0
-                    )
-            );
-
+            return total + categoryCashTotal;
         },
         0
     );
-
 };
 
 
@@ -1780,10 +1436,7 @@ const getContributedToCashTotal = (
 // Selected User Contributed To Total
 // --------------------------------------------------
 
-const getSelectedUserContributionAmount = (
-    contributedTo
-) => {
-
+const getSelectedUserContributionAmount = contributedTo => {
     if (!selectedUser.value) {
         return 0;
     }
@@ -1791,39 +1444,19 @@ const getSelectedUserContributionAmount = (
     return (
         selectedUser.value.contributions || []
     )
-        .filter(
-            contribution => {
-
-                return (
-                    normalizeContributedTo(
-                        contribution.contributedTo
-                    ) ===
-                    normalizeContributedTo(
-                        contributedTo
-                    )
-                );
-
-            }
-        )
-        .reduce(
-            (
-                total,
-                contribution
-            ) => {
-
-                return (
-                    total +
-                    (
-                        Number(
-                            contribution.amount
-                        ) || 0
-                    )
-                );
-
-            },
-            0
-        );
-
+        .filter(contribution => {
+            return (
+                normalizeContributedTo(
+                    contribution.contributedTo
+                ) === normalizeContributedTo(contributedTo)
+            );
+        })
+        .reduce((total, contribution) => {
+            return (
+                total +
+                (Number(contribution.amount) || 0)
+            );
+        }, 0);
 };
 
 
@@ -1831,10 +1464,7 @@ const getSelectedUserContributionAmount = (
 // Selected User Contributed To Online Total
 // --------------------------------------------------
 
-const getSelectedUserContributedToOnlineTotal = (
-    contributedTo
-) => {
-
+const getSelectedUserContributedToOnlineTotal = contributedTo => {
     if (!selectedUser.value) {
         return 0;
     }
@@ -1842,46 +1472,22 @@ const getSelectedUserContributedToOnlineTotal = (
     return (
         selectedUser.value.contributions || []
     )
-        .filter(
-            contribution => {
-
-                return (
-                    normalizeContributedTo(
-                        contribution.contributedTo
-                    ) ===
-                    normalizeContributedTo(
-                        contributedTo
-                    ) &&
-                    (
-                        contribution.collectionType ||
-                        ""
-                    )
-                        .trim()
-                        .toLowerCase() ===
-                    "online"
-                );
-
-            }
-        )
-        .reduce(
-            (
-                total,
-                contribution
-            ) => {
-
-                return (
-                    total +
-                    (
-                        Number(
-                            contribution.amount
-                        ) || 0
-                    )
-                );
-
-            },
-            0
-        );
-
+        .filter(contribution => {
+            return (
+                normalizeContributedTo(
+                    contribution.contributedTo
+                ) === normalizeContributedTo(contributedTo) &&
+                String(
+                    contribution.collectionType || ""
+                ).trim().toLowerCase() === "online"
+            );
+        })
+        .reduce((total, contribution) => {
+            return (
+                total +
+                (Number(contribution.amount) || 0)
+            );
+        }, 0);
 };
 
 
@@ -1889,10 +1495,7 @@ const getSelectedUserContributedToOnlineTotal = (
 // Selected User Contributed To Cash Total
 // --------------------------------------------------
 
-const getSelectedUserContributedToCashTotal = (
-    contributedTo
-) => {
-
+const getSelectedUserContributedToCashTotal = contributedTo => {
     if (!selectedUser.value) {
         return 0;
     }
@@ -1900,46 +1503,22 @@ const getSelectedUserContributedToCashTotal = (
     return (
         selectedUser.value.contributions || []
     )
-        .filter(
-            contribution => {
-
-                return (
-                    normalizeContributedTo(
-                        contribution.contributedTo
-                    ) ===
-                    normalizeContributedTo(
-                        contributedTo
-                    ) &&
-                    (
-                        contribution.collectionType ||
-                        ""
-                    )
-                        .trim()
-                        .toLowerCase() ===
-                    "cash"
-                );
-
-            }
-        )
-        .reduce(
-            (
-                total,
-                contribution
-            ) => {
-
-                return (
-                    total +
-                    (
-                        Number(
-                            contribution.amount
-                        ) || 0
-                    )
-                );
-
-            },
-            0
-        );
-
+        .filter(contribution => {
+            return (
+                normalizeContributedTo(
+                    contribution.contributedTo
+                ) === normalizeContributedTo(contributedTo) &&
+                String(
+                    contribution.collectionType || ""
+                ).trim().toLowerCase() === "cash"
+            );
+        })
+        .reduce((total, contribution) => {
+            return (
+                total +
+                (Number(contribution.amount) || 0)
+            );
+        }, 0);
 };
 
 
@@ -1948,49 +1527,37 @@ const getSelectedUserContributedToCashTotal = (
 // --------------------------------------------------
 
 const destroyDataTable = () => {
-
     if (dataTable) {
-
         try {
-
             dataTable.destroy();
-
         } catch (error) {
-
             console.warn(
                 "DataTable destroy warning:",
                 error
             );
-
         }
 
         dataTable = null;
-
     }
-
 };
 
 
 const initializeDataTable = async () => {
-
     await nextTick();
 
-    // Always destroy previous instance
+    // Always destroy the previous instance
     destroyDataTable();
 
     if (
         !usersTable.value ||
         users.value.length === 0
     ) {
-
         return;
-
     }
 
     dataTable = new DataTable(
         usersTable.value,
         {
-
             pageLength: 10,
 
             lengthMenu: [
@@ -2003,46 +1570,35 @@ const initializeDataTable = async () => {
             ],
 
             language: {
-
-                search:
-                    "Search users:",
-
-                lengthMenu:
-                    "Show _MENU_ users",
-
-                info:
-                    "Showing _START_ to _END_ of _TOTAL_ users",
-
-                infoEmpty:
-                    "No users available",
-
-                zeroRecords:
-                    "No matching users found"
-
+                search: "Search users:",
+                lengthMenu: "Show _MENU_ users",
+                info: "Showing _START_ to _END_ of _TOTAL_ users",
+                infoEmpty: "No users available",
+                zeroRecords: "No matching users found"
             }
-
         }
     );
-
 };
 
 
 // --------------------------------------------------
 // Export Excel
+// Includes only the categories selected in checklist.
 // --------------------------------------------------
 
 const exportToExcel = () => {
-
     if (!users.value.length) {
         return;
     }
 
     const rows = [];
 
+    // Report title
     rows.push([
         "CONTRIBUTION MARKS"
     ]);
 
+    // Date range
     rows.push([
         "Date Range",
         `${appliedStartDate.value || "Beginning"} → ${
@@ -2052,60 +1608,51 @@ const exportToExcel = () => {
 
     rows.push([]);
 
+    // --------------------------------------------------
+    // Headers
+    // --------------------------------------------------
+
     const headers = [
         "User ID",
         "Name",
         "Designation"
     ];
-    
-    contributedToColumns.value.forEach(
-        contributedTo => {
 
-            headers.push(
-                contributedTo
-            );
-
-        }
-    );
+    contributedToColumns.value.forEach(contributedTo => {
+        headers.push(contributedTo);
+    });
 
     headers.push("Total");
 
     rows.push(headers);
 
-    users.value.forEach(
-        user => {
 
-           const row = [
-               user.userId || "No User ID",
-               user.fullName || "Unknown User",
-               user.designation || "No Designation"
-           ];
+    // --------------------------------------------------
+    // User Rows
+    // --------------------------------------------------
 
-            contributedToColumns.value.forEach(
-                contributedTo => {
+    users.value.forEach(user => {
+        const row = [
+            user.userId || "No User ID",
+            user.fullName || "Unknown User",
+            user.designation || "No Designation"
+        ];
 
-                    row.push(
-                        hasContribution(
-                            user,
-                            contributedTo
-                        )
-                            ? "✓"
-                            : ""
-                    );
-
-                }
-            );
-
+        contributedToColumns.value.forEach(contributedTo => {
             row.push(
-                Number(
-                    user.totalContribution
-                ) || 0
+                hasContribution(user, contributedTo)
+                    ? "✓"
+                    : ""
             );
+        });
 
-            rows.push(row);
+        // Total only includes selected categories
+        row.push(
+            getUserSelectedTotal(user)
+        );
 
-        }
-    );
+        rows.push(row);
+    });
 
 
     // --------------------------------------------------
@@ -2117,31 +1664,20 @@ const exportToExcel = () => {
         "",
         "GRAND TOTAL"
     ];
-    
-    contributedToColumns.value.forEach(
-        contributedTo => {
 
-            grandTotalRow.push(
-                getContributedToTotal(
-                    contributedTo
-                )
-            );
+    contributedToColumns.value.forEach(contributedTo => {
+        grandTotalRow.push(
+            getContributedToTotal(contributedTo)
+        );
+    });
 
-        }
-    );
-
-    grandTotalRow.push(
-        grandTotal.value
-    );
+    grandTotalRow.push(grandTotal.value);
 
     rows.push([]);
 
-    const grandTotalRowIndex =
-        rows.length;
+    const grandTotalRowIndex = rows.length;
 
-    rows.push(
-        grandTotalRow
-    );
+    rows.push(grandTotalRow);
 
 
     // --------------------------------------------------
@@ -2150,31 +1686,21 @@ const exportToExcel = () => {
 
     const onlineTotalRow = [
         "",
+        "",
         "ONLINE TOTAL"
     ];
 
-    contributedToColumns.value.forEach(
-        contributedTo => {
+    contributedToColumns.value.forEach(contributedTo => {
+        onlineTotalRow.push(
+            getContributedToOnlineTotal(contributedTo)
+        );
+    });
 
-            onlineTotalRow.push(
-                getContributedToOnlineTotal(
-                    contributedTo
-                )
-            );
+    onlineTotalRow.push(onlineTotal.value);
 
-        }
-    );
+    const onlineTotalRowIndex = rows.length;
 
-    onlineTotalRow.push(
-        onlineTotal.value
-    );
-
-    const onlineTotalRowIndex =
-        rows.length;
-
-    rows.push(
-        onlineTotalRow
-    );
+    rows.push(onlineTotalRow);
 
 
     // --------------------------------------------------
@@ -2183,42 +1709,28 @@ const exportToExcel = () => {
 
     const cashTotalRow = [
         "",
+        "",
         "CASH TOTAL"
     ];
 
-    contributedToColumns.value.forEach(
-        contributedTo => {
+    contributedToColumns.value.forEach(contributedTo => {
+        cashTotalRow.push(
+            getContributedToCashTotal(contributedTo)
+        );
+    });
 
-            cashTotalRow.push(
-                getContributedToCashTotal(
-                    contributedTo
-                )
-            );
+    cashTotalRow.push(cashTotal.value);
 
-        }
-    );
+    const cashTotalRowIndex = rows.length;
 
-    cashTotalRow.push(
-        cashTotal.value
-    );
-
-    const cashTotalRowIndex =
-        rows.length;
-
-    rows.push(
-        cashTotalRow
-    );
+    rows.push(cashTotalRow);
 
 
     // --------------------------------------------------
     // Worksheet
     // --------------------------------------------------
 
-    const worksheet =
-        XLSX.utils.aoa_to_sheet(
-            rows
-        );
-
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
 
     const totalColumns =
         3 +
@@ -2237,45 +1749,33 @@ const exportToExcel = () => {
         colIndex < totalColumns;
         colIndex++
     ) {
-
         let maxLength = 0;
 
-        rows.forEach(
-            row => {
+        rows.forEach(row => {
+            const value =
+                row[colIndex] !== undefined &&
+                row[colIndex] !== null
+                    ? String(row[colIndex])
+                    : "";
 
-                const value =
-                    row[colIndex] !== undefined &&
-                    row[colIndex] !== null
-                        ? String(
-                            row[colIndex]
-                        )
-                        : "";
-
-                maxLength =
-                    Math.max(
-                        maxLength,
-                        value.length
-                    );
-
-            }
-        );
-
-        columnWidths.push({
-            wch:
-                Math.max(
-                    maxLength + 2,
-                    10
-                )
+            maxLength = Math.max(
+                maxLength,
+                value.length
+            );
         });
 
+        columnWidths.push({
+            wch: Math.max(maxLength + 2, 10)
+        });
     }
 
-    worksheet["!cols"] =
-        columnWidths;
+    worksheet["!cols"] = columnWidths;
 
 
     // --------------------------------------------------
     // Center Checkmarks
+    // Fixed columns are 0, 1, and 2.
+    // Dynamic category columns begin at index 3.
     // --------------------------------------------------
 
     for (
@@ -2283,35 +1783,28 @@ const exportToExcel = () => {
         rowIndex < rows.length;
         rowIndex++
     ) {
-
         for (
-            let colIndex = 2;
+            let colIndex = 3;
             colIndex < totalColumns - 1;
             colIndex++
         ) {
-
-            const cellAddress =
-                XLSX.utils.encode_cell({
-                    r: rowIndex,
-                    c: colIndex
-                });
+            const cellAddress = XLSX.utils.encode_cell({
+                r: rowIndex,
+                c: colIndex
+            });
 
             if (
                 worksheet[cellAddress] &&
                 worksheet[cellAddress].v === "✓"
             ) {
-
                 worksheet[cellAddress].s = {
                     alignment: {
                         horizontal: "center",
                         vertical: "center"
                     }
                 };
-
             }
-
         }
-
     }
 
 
@@ -2325,43 +1818,32 @@ const exportToExcel = () => {
         cashTotalRowIndex
     ];
 
-    totalRowIndexes.forEach(
-        rowIndex => {
+    totalRowIndexes.forEach(rowIndex => {
+        for (
+            let colIndex = 3;
+            colIndex < totalColumns;
+            colIndex++
+        ) {
+            const cellAddress = XLSX.utils.encode_cell({
+                r: rowIndex,
+                c: colIndex
+            });
 
-            for (
-                let colIndex = 2;
-                colIndex < totalColumns;
-                colIndex++
+            if (
+                worksheet[cellAddress] &&
+                typeof worksheet[cellAddress].v === "number"
             ) {
-
-                const cellAddress =
-                    XLSX.utils.encode_cell({
-                        r: rowIndex,
-                        c: colIndex
-                    });
-
-                if (
-                    worksheet[cellAddress] &&
-                    typeof worksheet[cellAddress].v === "number"
-                ) {
-
-                    worksheet[cellAddress].z =
-                        '₱#,##0.00';
-
-                }
-
+                worksheet[cellAddress].z = '₱#,##0.00';
             }
-
         }
-    );
+    });
 
 
     // --------------------------------------------------
     // Workbook
     // --------------------------------------------------
 
-    const workbook =
-        XLSX.utils.book_new();
+    const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(
         workbook,
@@ -2388,61 +1870,46 @@ const exportToExcel = () => {
     // Create Excel File
     // --------------------------------------------------
 
-    const excelBuffer =
-        XLSX.write(
-            workbook,
-            {
-                bookType: "xlsx",
-                type: "array"
-            }
-        );
+    const excelBuffer = XLSX.write(
+        workbook,
+        {
+            bookType: "xlsx",
+            type: "array"
+        }
+    );
 
-    const blob =
-        new Blob(
-            [excelBuffer],
-            {
-                type:
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            }
-        );
+    const blob = new Blob(
+        [excelBuffer],
+        {
+            type:
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        }
+    );
 
 
     // --------------------------------------------------
     // Force Download With Filename
     // --------------------------------------------------
 
-    const url =
-        URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
 
-    const link =
-        document.createElement("a");
+    const link = document.createElement("a");
 
-    link.href =
-        url;
+    link.href = url;
+    link.download = filename;
 
-    link.download =
-        filename;
-
-    document.body.appendChild(
-        link
-    );
+    document.body.appendChild(link);
 
     link.click();
 
-    document.body.removeChild(
-        link
-    );
+    document.body.removeChild(link);
 
-    URL.revokeObjectURL(
-        url
-    );
-
+    URL.revokeObjectURL(url);
 
     console.log(
         "Downloaded filename:",
         filename
     );
-
 };
 
 
@@ -2451,69 +1918,54 @@ const exportToExcel = () => {
 // --------------------------------------------------
 
 const getUsers = async () => {
-
     // Validate date range
     if (
         startDate.value &&
         endDate.value &&
         startDate.value > endDate.value
     ) {
-
         errorMessage.value =
             "Start date cannot be later than end date.";
 
         return;
-
     }
-
 
     loading.value = true;
 
     errorMessage.value = "";
 
-
     try {
-
         const params = {};
-
 
         // Start date
         if (startDate.value) {
-
-            params.startDate =
-                startDate.value;
-
+            params.startDate = startDate.value;
         }
-
 
         // End date
         if (endDate.value) {
-
-            params.endDate =
-                endDate.value;
-
+            params.endDate = endDate.value;
         }
 
-
-        // Destroy DataTable before Vue changes table
+        // Destroy DataTable before Vue changes the table
         destroyDataTable();
 
-
-        const response =
-            await api.get(
-                "/contributions/users",
-                {
-                    params
-                }
-            );
-
-
+        const response = await api.get(
+            "/contributions/users",
+            {
+                params
+            }
+        );
 
         console.log(response.data);
 
-        users.value =
-            response.data || [];
+        users.value = response.data || [];
 
+        // Select every available category by default.
+        // The checklist can then be narrowed by the user.
+        selectedContributedTo.value = [
+            ...availableContributedToColumns.value
+        ];
 
         // Save the exact date range used for this request
         appliedDateRange.value = {
@@ -2521,21 +1973,15 @@ const getUsers = async () => {
             endDate: params.endDate || ""
         };
 
-
         // Reset selected user
         selectedUser.value = null;
 
-
         // Reset visible contribution amounts
-        visibleContributionAmounts.value =
-            new Set();
-
+        visibleContributionAmounts.value = new Set();
 
         // Rebuild DataTable
         await initializeDataTable();
-
     } catch (error) {
-
         console.error(
             "Get users with contributions error:",
             error
@@ -2544,13 +1990,9 @@ const getUsers = async () => {
         errorMessage.value =
             error?.response?.data?.message ||
             "Failed to retrieve users and contributions.";
-
     } finally {
-
         loading.value = false;
-
     }
-
 };
 
 
@@ -2559,13 +2001,10 @@ const getUsers = async () => {
 // --------------------------------------------------
 
 const clearDateRange = async () => {
-
     startDate.value = "";
-
     endDate.value = "";
 
     await getUsers();
-
 };
 
 
@@ -2574,18 +2013,12 @@ const clearDateRange = async () => {
 // --------------------------------------------------
 
 const viewUser = user => {
-
-    selectedUser.value =
-        user;
-
+    selectedUser.value = user;
 };
 
 
 const closeUserModal = () => {
-
-    selectedUser.value =
-        null;
-
+    selectedUser.value = null;
 };
 
 
@@ -2594,13 +2027,10 @@ const closeUserModal = () => {
 // --------------------------------------------------
 
 onMounted(() => {
-
     getUsers();
-
 });
 
 </script>
-
 
 <style scoped>
 
@@ -2609,16 +2039,9 @@ onMounted(() => {
 ========================= */
 
 .contribution-page {
-
-    min-height:
-        calc(100vh - 60px);
-
-    padding:
-        50px 0;
-
-    background:
-        #eef3f7;
-
+    min-height: calc(100vh - 60px);
+    padding: 50px 0;
+    background: #eef3f7;
 }
 
 
@@ -2627,18 +2050,11 @@ onMounted(() => {
 ========================= */
 
 .contribution-page h2 {
-
-    color:
-        #1e3a5f;
-
+    color: #1e3a5f;
 }
 
-
 .contribution-page .text-muted {
-
-    color:
-        #6b7c8f !important;
-
+    color: #6b7c8f !important;
 }
 
 
@@ -2648,44 +2064,19 @@ onMounted(() => {
 
 .contribution-card,
 .summary-card {
-
-    border-radius:
-        14px;
-
-    background:
-        #ffffff;
-
-    box-shadow:
-        0 8px 25px
-        rgba(
-            30,
-            58,
-            95,
-            0.10
-        ) !important;
-
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 25px rgba(30, 58, 95, 0.10) !important;
 }
-
 
 .summary-card {
-
-    min-height:
-        110px;
-
+    min-height: 110px;
 }
 
-
 .summary-card .card-body {
-
-    display:
-        flex;
-
-    flex-direction:
-        column;
-
-    justify-content:
-        center;
-
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 
@@ -2694,72 +2085,33 @@ onMounted(() => {
 ========================= */
 
 .table {
-
-    margin-bottom:
-        0;
-
-    color:
-        #263238;
-
+    margin-bottom: 0;
+    color: #263238;
 }
-
 
 .table thead th {
-
-    padding:
-        15px 18px;
-
-    color:
-        #34495e;
-
-    background:
-        #f5f7f9;
-
-    border-bottom:
-        1px solid #dce3e9;
-
-    font-size:
-        14px;
-
-    white-space:
-        nowrap;
-
+    padding: 15px 18px;
+    color: #34495e;
+    background: #f5f7f9;
+    border-bottom: 1px solid #dce3e9;
+    font-size: 14px;
+    white-space: nowrap;
 }
-
 
 .table tbody td {
-
-    padding:
-        16px 18px;
-
-    border-color:
-        #edf1f4;
-
-    vertical-align:
-        middle;
-
+    padding: 16px 18px;
+    border-color: #edf1f4;
+    vertical-align: middle;
 }
-
 
 .table tbody tr:last-child td {
-
-    border-bottom:
-        none;
-
+    border-bottom: none;
 }
 
-
 .table tfoot th {
-
-    padding:
-        15px 18px;
-
-    background:
-        #f5f7f9;
-
-    border-top:
-        1px solid #dce3e9;
-
+    padding: 15px 18px;
+    background: #f5f7f9;
+    border-top: 1px solid #dce3e9;
 }
 
 
@@ -2768,21 +2120,12 @@ onMounted(() => {
 ========================= */
 
 .contribution-header {
-
-    min-width:
-        140px;
-
-    text-align:
-        center;
-
+    min-width: 140px;
+    text-align: center;
 }
 
-
 .contribution-cell-wrapper {
-
-    min-width:
-        120px;
-
+    min-width: 120px;
 }
 
 
@@ -2791,76 +2134,36 @@ onMounted(() => {
 ========================= */
 
 .contribution-cell {
-
-    width:
-        100%;
-
-    min-width:
-        85px;
-
-    min-height:
-        38px;
-
-    border:
-        1px solid #198754;
-
-    border-radius:
-        6px;
-
-    background:
-        #d1e7dd;
-
-    color:
-        #146c43;
-
-    font-weight:
-        700;
-
-    cursor:
-        pointer;
-
+    width: 100%;
+    min-width: 85px;
+    min-height: 38px;
+    border: 1px solid #198754;
+    border-radius: 6px;
+    background: #d1e7dd;
+    color: #146c43;
+    font-weight: 700;
+    cursor: pointer;
     transition:
         background-color 0.15s ease,
         transform 0.1s ease;
-
 }
-
 
 .contribution-cell:hover {
-
-    background:
-        #a3cfbb;
-
+    background: #a3cfbb;
 }
-
 
 .contribution-cell:active {
-
-    transform:
-        scale(0.96);
-
+    transform: scale(0.96);
 }
-
 
 .check-icon {
-
-    font-size:
-        18px;
-
-    font-weight:
-        800;
-
+    font-size: 18px;
+    font-weight: 800;
 }
 
-
 .no-contribution {
-
-    color:
-        #adb5bd;
-
-    font-size:
-        18px;
-
+    color: #adb5bd;
+    font-size: 18px;
 }
 
 
@@ -2869,59 +2172,31 @@ onMounted(() => {
 ========================= */
 
 .btn {
-    font-weight:
-        600;
-    border-radius:
-        7px;
+    font-weight: 600;
+    border-radius: 7px;
 }
-
 
 .btn-danger {
-    color:
-        #263238;
-    background:
-        #f4c95d;
-    border-color:
-        #f4c95d;
+    color: #263238;
+    background: #f4c95d;
+    border-color: #f4c95d;
 }
-
 
 .btn-danger:hover {
-
-    color:
-        #263238;
-
-    background:
-        #e9b949;
-
-    border-color:
-        #e9b949;
-
+    color: #263238;
+    background: #e9b949;
+    border-color: #e9b949;
 }
-
 
 .btn-outline-primary {
-
-    color:
-        #1e5a8a;
-
-    border-color:
-        #1e5a8a;
-
+    color: #1e5a8a;
+    border-color: #1e5a8a;
 }
 
-
 .btn-outline-primary:hover {
-
-    color:
-        #ffffff;
-
-    background:
-        #1e5a8a;
-
-    border-color:
-        #1e5a8a;
-
+    color: #ffffff;
+    background: #1e5a8a;
+    border-color: #1e5a8a;
 }
 
 
@@ -2930,38 +2205,67 @@ onMounted(() => {
 ========================= */
 
 .form-label {
-
-    color:
-        #34495e;
-
+    color: #34495e;
 }
-
 
 .form-control {
+    border: 1px solid #dce3e9;
+    border-radius: 7px;
+}
 
-    border:
-        1px solid #dce3e9;
-
-    border-radius:
-        7px;
-
+.form-control:focus {
+    border-color: #1e5a8a;
+    box-shadow: 0 0 0 0.2rem rgba(30, 90, 138, 0.12);
 }
 
 
-.form-control:focus {
+/* =========================
+   Contributed To Checklist
+========================= */
 
-    border-color:
-        #1e5a8a;
+.contributed-to-filter {
+    padding-top: 18px;
+    border-top: 1px solid #e5eaf0;
+}
 
-    box-shadow:
-        0 0 0 0.2rem
-        rgba(
-            30,
-            90,
-            138,
-            0.12
-        );
+.contributed-to-checklist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid #dce3e9;
+    border-radius: 8px;
+    background: #f8fafc;
+}
 
+.contributed-to-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #dce3e9;
+    border-radius: 7px;
+    background: #ffffff;
+    cursor: pointer;
+    user-select: none;
+    transition:
+        border-color 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.contributed-to-option:hover {
+    border-color: #1e5a8a;
+    background: #f0f6fb;
+}
+
+.contributed-to-option .form-check-input {
+    flex-shrink: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+.contributed-to-option span {
+    overflow-wrap: anywhere;
 }
 
 
@@ -2970,42 +2274,23 @@ onMounted(() => {
 ========================= */
 
 :deep(.dataTables_wrapper) {
-
-    width:
-        100%;
-
+    width: 100%;
 }
-
 
 :deep(.dt-search) {
-
-    margin-bottom:
-        15px;
-
+    margin-bottom: 15px;
 }
-
 
 :deep(.dt-length) {
-
-    margin-bottom:
-        15px;
-
+    margin-bottom: 15px;
 }
-
 
 :deep(.dt-info) {
-
-    padding-top:
-        10px;
-
+    padding-top: 10px;
 }
 
-
 :deep(.dt-paging) {
-
-    margin-top:
-        10px;
-
+    margin-top: 10px;
 }
 
 
@@ -3014,36 +2299,17 @@ onMounted(() => {
 ========================= */
 
 :deep(.dt-search input) {
-
-    margin-left:
-        8px;
-
-    border:
-        1px solid #dce3e9;
-
-    border-radius:
-        7px;
-
-    padding:
-        6px 10px;
-
+    margin-left: 8px;
+    border: 1px solid #dce3e9;
+    border-radius: 7px;
+    padding: 6px 10px;
 }
 
-
 :deep(.dt-length select) {
-
-    margin:
-        0 5px;
-
-    border:
-        1px solid #dce3e9;
-
-    border-radius:
-        7px;
-
-    padding:
-        5px 25px 5px 8px;
-
+    margin: 0 5px;
+    border: 1px solid #dce3e9;
+    border-radius: 7px;
+    padding: 5px 25px 5px 8px;
 }
 
 
@@ -3052,122 +2318,46 @@ onMounted(() => {
 ========================= */
 
 .custom-modal-backdrop {
-
-    position:
-        fixed;
-
-    inset:
-        0;
-
-    z-index:
-        1050;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    padding:
-        20px;
-
-    background:
-        rgba(
-            0,
-            0,
-            0,
-            0.55
-        );
-
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.55);
 }
-
 
 .custom-modal {
-
-    width:
-        100%;
-
-    max-width:
-        1200px;
-
-    max-height:
-        90vh;
-
-    background:
-        #ffffff;
-
-    border-radius:
-        12px;
-
-    box-shadow:
-        0 10px 40px
-        rgba(
-            0,
-            0,
-            0,
-            0.25
-        );
-
-    display:
-        flex;
-
-    flex-direction:
-        column;
-
-    overflow:
-        hidden;
-
+    width: 100%;
+    max-width: 1200px;
+    max-height: 90vh;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
-
 
 .custom-modal-header {
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        space-between;
-
-    padding:
-        20px 24px;
-
-    border-bottom:
-        1px solid #dee2e6;
-
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #dee2e6;
 }
-
 
 .custom-modal-body {
-
-    padding:
-        24px;
-
-    overflow-y:
-        auto;
-
+    padding: 24px;
+    overflow-y: auto;
 }
 
-
 .custom-modal-footer {
-
-    display:
-        flex;
-
-    justify-content:
-        flex-end;
-
-    padding:
-        16px 24px;
-
-    border-top:
-        1px solid #dee2e6;
-
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px 24px;
+    border-top: 1px solid #dee2e6;
 }
 
 
@@ -3176,30 +2366,15 @@ onMounted(() => {
 ========================= */
 
 .info-box {
-
-    padding:
-        15px;
-
-    background:
-        #f8f9fa;
-
-    border:
-        1px solid #dee2e6;
-
-    border-radius:
-        8px;
-
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
 }
 
-
 .info-box small {
-
-    display:
-        block;
-
-    margin-bottom:
-        4px;
-
+    display: block;
+    margin-bottom: 4px;
 }
 
 
@@ -3208,26 +2383,15 @@ onMounted(() => {
 ========================= */
 
 .custom-modal .table {
-
-    margin-bottom:
-        0;
-
+    margin-bottom: 0;
 }
-
 
 .custom-modal .table th {
-
-    white-space:
-        nowrap;
-
+    white-space: nowrap;
 }
 
-
 .custom-modal .table td {
-
-    vertical-align:
-        middle;
-
+    vertical-align: middle;
 }
 
 
@@ -3236,19 +2400,10 @@ onMounted(() => {
 ========================= */
 
 .alert-danger {
-
-    color:
-        #7a3030;
-
-    background:
-        #fbeaea;
-
-    border-color:
-        #efcaca;
-
-    border-radius:
-        7px;
-
+    color: #7a3030;
+    background: #fbeaea;
+    border-color: #efcaca;
+    border-radius: 7px;
 }
 
 
@@ -3257,13 +2412,8 @@ onMounted(() => {
 ========================= */
 
 .spinner-border {
-
-    width:
-        2rem;
-
-    height:
-        2rem;
-
+    width: 2rem;
+    height: 2rem;
 }
 
 
@@ -3272,124 +2422,77 @@ onMounted(() => {
 ========================= */
 
 @media (max-width: 767.98px) {
-
     .contribution-page {
-        padding:
-            35px 15px;
+        padding: 35px 15px;
     }
 
-    .contribution-page
-    > .container {
-        width:
-            100%;
+    .contribution-page > .container {
+        width: 100%;
     }
-
 
     /* Header */
     .contribution-page
     .d-flex.justify-content-between {
-
-        flex-direction:
-            column;
-
-        align-items:
-            flex-start !important;
-
-        gap:
-            15px;
-
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 15px;
     }
-
 
     .contribution-page
     .d-flex.gap-2 {
-
-        width:
-            100%;
-
-        flex-wrap:
-            wrap;
-
+        width: 100%;
+        flex-wrap: wrap;
     }
-
 
     .contribution-page
     .d-flex.gap-2
     .btn {
-
-        flex:
-            1 1 auto;
-
+        flex: 1 1 auto;
     }
-
 
     /* Table */
-
     .table {
-
-        min-width:
-            950px;
-
+        min-width: 950px;
     }
-
 
     .contribution-header {
-
-        min-width:
-            120px;
-
+        min-width: 120px;
     }
-
 
     .contribution-cell-wrapper {
-
-        min-width:
-            100px;
-
+        min-width: 100px;
     }
 
+    /* Checklist */
+    .contributed-to-checklist {
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .contributed-to-option {
+        padding: 8px 10px;
+    }
 
     /* Modal */
-
     .custom-modal-backdrop {
-
-        padding:
-            10px;
-
+        padding: 10px;
     }
-
 
     .custom-modal {
-
-        max-height:
-            95vh;
-
+        max-height: 95vh;
     }
-
 
     .custom-modal-header {
-
-        padding:
-            16px;
-
+        padding: 16px;
     }
-
 
     .custom-modal-body {
-
-        padding:
-            16px;
-
+        padding: 16px;
     }
-
 
     .custom-modal-footer {
-
-        padding:
-            12px 16px;
-
+        padding: 12px 16px;
     }
-
 }
 
 </style>

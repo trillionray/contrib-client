@@ -724,15 +724,15 @@
                                 <!-- Grand Total -->
 
                                 
-                                <tr>
-                                  <th colspan="3" class="text-end">
+                                <tr class="">
+                                  <th colspan="3" class="text-end bg-info">
                                     Total Participants
                                   </th>
 
                                   <th
                                     v-for="category in contributedToColumns"
                                     :key="'participants-' + category"
-                                    class="text-center"
+                                    class="text-center bg-info"
                                   >
                                     {{ getParticipantsByContributedTo(category) }}
                                   </th>
@@ -742,11 +742,11 @@
                                 </tr>
 
                                   
-                                   
+
                                 <tr>
                                     <th
                                         colspan="3"
-                                        class="text-end"
+                                        class="text-end bg-warning"
                                     >
                                         Grand Total
                                     </th>
@@ -754,7 +754,7 @@
                                     <th
                                         v-for="contributedTo in contributedToColumns"
                                         :key="`total-${contributedTo}`"
-                                        class="text-end"
+                                        class="text-end bg-warning"
                                     >
                                         ₱{{
                                             formatAmount(

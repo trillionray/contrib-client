@@ -485,115 +485,62 @@ const checkAuthentication = () => {
 // =========================
 
 const initializeDataTable = async () => {
-
   await nextTick();
 
-
-  if (
-    !contributionTable.value
-  ) {
-
+  // Do not initialize while the loading spinner is displayed.
+  if (isLoading.value || !contributionTable.value) {
     return;
-
   }
 
-
+  // Destroy the previous instance before rebuilding.
   if (dataTable) {
-
     dataTable.destroy();
-
-    dataTable =
-      null;
-
+    dataTable = null;
   }
 
+  dataTable = new DataTable(contributionTable.value, {
+    processing: false,
+    serverSide: false,
 
-  dataTable =
-    new DataTable(
-      contributionTable.value,
+    paging: true,
+    pageLength: 10,
+    lengthChange: true,
+    searching: true,
+    ordering: true,
+    info: true,
+    autoWidth: false,
+
+    lengthMenu: [
+      [10, 25, 50, 100],
+      [10, 25, 50, 100]
+    ],
+
+    order: [[1, "desc"]],
+
+    columnDefs: [
       {
-
-        order: [
-          [
-            1,
-            "desc"
-          ]
-        ],
-
-        pageLength:
-          10,
-
-        lengthMenu: [
-
-          [
-            10,
-            25,
-            50,
-            100
-          ],
-
-          [
-            "10",
-            "25",
-            "50",
-            "100"
-          ]
-
-        ],
-
-        columnDefs: [
-
-          {
-            targets:
-              6,
-
-            orderable:
-              false,
-
-            searchable:
-              false
-          }
-
-        ],
-
-        language: {
-
-          search:
-            "Search:",
-
-          lengthMenu:
-            "Show _MENU_ entries",
-
-          info:
-            "Showing _START_ to _END_ of _TOTAL_ contributions",
-
-          infoEmpty:
-            "No contributions found",
-
-          zeroRecords:
-            "No matching contributions found",
-
-          paginate: {
-
-            first:
-              "First",
-
-            last:
-              "Last",
-
-            next:
-              "Next",
-
-            previous:
-              "Previous"
-
-          }
-
-        }
-
+        targets: 6,
+        orderable: false,
+        searchable: false
       }
-    );
+    ],
 
+    language: {
+      search: "Search:",
+      lengthMenu: "Show _MENU_ entries",
+      info: "Showing _START_ to _END_ of _TOTAL_ records",
+      infoEmpty: "No records found",
+      emptyTable: "No contributions available",
+      zeroRecords: "No matching contributions found",
+
+      paginate: {
+        first: "First",
+        last: "Last",
+        next: "Next",
+        previous: "Previous"
+      }
+    }
+  });
 };
 
 
@@ -602,17 +549,15 @@ const initializeDataTable = async () => {
 // =========================
 
 const destroyDataTable = () => {
-
   if (dataTable) {
-
     dataTable.destroy();
-
-    dataTable =
-      null;
-
+    dataTable = null;
   }
-
 };
+
+
+
+
 
 
 // =========================
@@ -620,703 +565,306 @@ const destroyDataTable = () => {
 // =========================
 
 const getContributions = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
 
-  isLoading.value =
-    true;
-
-  errorMessage.value =
-    "";
-
+  // Remove the old DataTable before changing the data.
+  destroyDataTable();
 
   try {
-
-    const response =
-      await api.get(
-        "/contributions"
-      );
-
+    const response = await api.get("/contributions");
 
     console.log(
-      response
+      "Contributions API response:",
+      response.data
     );
 
+    // Support either a direct array or a wrapped array.
+    const responseData = response.data;
 
-    contributions.value =
-      response.data;
+    let records = [];
 
+    if (Array.isArray(responseData)) {
+      records = responseData;
+    } else if (
+      Array.isArray(responseData?.contributions)
+    ) {
+      records = responseData.contributions;
+    } else if (
+      Array.isArray(responseData?.data)
+    ) {
+      records = responseData.data;
+    } else {
+      console.error(
+        "Unexpected contributions response structure:",
+        responseData
+      );
+
+      throw new Error(
+        "The server returned an unexpected contributions format."
+      );
+    }
+
+    console.log(
+      "Total contribution records received:",
+      records.length
+    );
+
+    contributions.value = records;
 
   } catch (error) {
-
     console.error(
+      "Error loading contributions:",
       error
     );
-
 
     if (
       error.response?.status === 401 ||
       error.response?.status === 403
     ) {
+      localStorage.removeItem("token");
 
-      localStorage.removeItem(
-        "token"
-      );
+      notyf.error("Login as admin");
 
-      notyf.error(
-        "Login as admin"
-      );
-
-      router.push(
-        "/login"
-      );
+      router.push("/login");
 
       return;
-
     }
-
 
     errorMessage.value =
       error.response?.data?.message ||
+      error.message ||
       "Unable to load contributions.";
 
+    notyf.error(errorMessage.value);
 
-    notyf.error(
-      errorMessage.value
-    );
+    // Avoid leaving stale records visible after a failed request.
+    contributions.value = [];
 
   } finally {
+    isLoading.value = false;
 
-    isLoading.value =
-      false;
 
   }
-
 };
+
 
 
 // =========================
 // Archive Contribution
 // =========================
 
-const archiveContribution = async (
-  contributionId
-) => {
-
+const archiveContribution = async (contributionId) => {
   if (!contributionId) {
-
-    notyf.error(
-      "Contribution ID is missing."
-    );
-
+    notyf.error("Contribution ID is missing.");
     return;
-
   }
 
-
-  const confirmed =
-    window.confirm(
-      "Are you sure you want to archive this contribution?"
-    );
-
+  const confirmed = window.confirm(
+    "Are you sure you want to archive this contribution?"
+  );
 
   if (!confirmed) {
-
     return;
-
   }
 
+  // Remember the current page before destroying DataTables.
+  const currentPage =
+    dataTable && !dataTable.destroyed
+      ? dataTable.page()
+      : 0;
+
+  destroyDataTable();
 
   try {
-
-    destroyDataTable();
-
-
     await api.delete(
       `/contributions/${contributionId}`
     );
 
+    // Remove only the archived contribution.
+    contributions.value =
+      contributions.value.filter(
+        (contribution) =>
+          contribution._id !== contributionId
+      );
 
     notyf.success(
       "Contribution archived successfully."
     );
 
+    // Wait until Vue updates the grouped table rows.
+    await nextTick();
 
-    contributions.value =
-      contributions.value.filter(
-        contribution =>
-          contribution._id !==
-          contributionId
-      );
+    await initializeDataTable();
 
+    // Restore the previous page when possible.
+    if (dataTable) {
+      const pageInfo = dataTable.page.info();
+
+      if (pageInfo.pages > 0) {
+        dataTable
+          .page(
+            Math.min(
+              currentPage,
+              pageInfo.pages - 1
+            )
+          )
+          .draw("page");
+      }
+    }
 
   } catch (error) {
-
     console.error(
+      "Error archiving contribution:",
       error
     );
-
 
     if (
       error.response?.status === 401 ||
       error.response?.status === 403
     ) {
+      localStorage.removeItem("token");
 
-      localStorage.removeItem(
-        "token"
-      );
+      notyf.error("Login as admin");
 
-      notyf.error(
-        "Login as admin"
-      );
-
-      router.push(
-        "/login"
-      );
+      router.push("/login");
 
       return;
-
     }
-
 
     notyf.error(
       error.response?.data?.message ||
       "Unable to archive contribution."
     );
 
+    // Reinitialize the table using the unchanged records.
+    await nextTick();
 
     await initializeDataTable();
-
   }
-
 };
 
 
-// =========================
-// Group Contributions
-// =========================
-
-const groupedContributions =
-  computed(() => {
-
-    const groups = {};
 
 
-    contributions.value.forEach(
-      item => {
+const groupedContributions = computed(() => {
+  const groups = {};
 
-        if (
-          !item.user ||
-          !item.date
-        ) {
-
-          return;
-
-        }
-
-
-        const date =
-          new Date(
-            item.date
-          );
-
-
-        const dateKey =
-          `${date.getFullYear()}-${String(
-            date.getMonth() + 1
-          ).padStart(
-            2,
-            "0"
-          )}-${String(
-            date.getDate()
-          ).padStart(
-            2,
-            "0"
-          )}`;
-
-
-        const key =
-          `${item.user._id}-${dateKey}`;
-
-
-        if (
-          !groups[key]
-        ) {
-
-          groups[key] = {
-
-            key,
-
-            date:
-              item.date,
-
-            userId:
-              item.user.userId,
-
-            fullName:
-              item.user.fullName,
-
-            contributions: [],
-
-            totalAmount:
-              0
-
-          };
-
-        }
-
-
-        groups[key]
-          .contributions
-          .push({
-
-            _id:
-              item._id,
-
-            crNumber:
-              item.crNumber,
-
-            numberOfParticipants:
-              Number(
-                item.numberOfParticipants
-              ) || 1,
-
-            contributedTo:
-              item.contributedTo,
-
-            collectionType:
-              item.collectionType,
-
-            description:
-              item.description,
-
-            amount:
-              Number(
-                item.amount
-              ) || 0
-
-          });
-
-
-        groups[key]
-          .totalAmount +=
-          Number(
-            item.amount
-          ) || 0;
-
-      }
-    );
-
-
-    return Object.values(
-      groups
-    ).sort(
-      (a, b) =>
-        new Date(
-          b.date
-        ) -
-        new Date(
-          a.date
-        )
-    );
-
-  });
-
-
-  const exportToExcel = async () => {
-  try {
-  // =========================================================
-  // PREPARE DATA
-  // =========================================================
-
-
-  const data = [];
-
-  groupedContributions.value.forEach(item => {
-    item.contributions.forEach(contribution => {
-      data.push({
-        "CR #": String(contribution.crNumber ?? "").trim(),
-        "Date": item.date,
-        "Contributor": item.fullName || "",
-        "User ID": item.userId || "",
-        "Contributed To": String(
-          contribution.contributedTo ?? ""
-        ).trim(),
-        "Collection Type": contribution.collectionType || "",
-        "Description": contribution.description || "",
-        "Participants":
-          Number(contribution.numberOfParticipants) || 1,
-        "Amount": Number(contribution.amount) || 0,
-        "Total": Number(item.totalAmount) || 0
-      });
-    });
-  });
-
-  if (!data.length) {
-    notyf.error("No contributions available to export.");
-    return;
-  }
-
-  // =========================================================
-  // CREATE UNIQUE COMBINED DROPDOWN OPTIONS
-  // =========================================================
-
-  const contributionOptions = [];
-  const optionLookup = new Map();
-
-  data.forEach(record => {
-    const crNumber = record["CR #"];
-    const contributedTo = record["Contributed To"];
-
-    if (!crNumber || !contributedTo) return;
-
-    const key = JSON.stringify([
-      crNumber,
-      contributedTo
-    ]);
-
-    if (!optionLookup.has(key)) {
-      const label = `${crNumber} | ${contributedTo}`;
-
-      const option = {
-        crNumber,
-        contributedTo,
-        label
-      };
-
-      optionLookup.set(key, option);
-      contributionOptions.push(option);
+  contributions.value.forEach((item) => {
+    if (!item || !item._id) {
+      return;
     }
-  });
 
-  if (!contributionOptions.length) {
-    notyf.error(
-      "No valid CR number and contribution combinations were found."
-    );
-    return;
-  }
+    const user =
+      item.user && typeof item.user === "object"
+        ? item.user
+        : {};
 
-  // =========================================================
-  // CREATE WORKBOOK
-  // =========================================================
+    const userKey =
+      user._id ||
+      (typeof item.user === "string" ? item.user : null) ||
+      "unknown-user";
 
-  const workbook = new ExcelJS.Workbook();
-
-  workbook.calcProperties.fullCalcOnLoad = true;
-  workbook.calcProperties.forceFullCalc = true;
-  workbook.calcProperties.calcMode = "auto";
-
-  // =========================================================
-  // IN RECORDS SHEET
-  // =========================================================
-
-  const inRecordsSheet = workbook.addWorksheet("In Records");
-
-  inRecordsSheet.columns = [
-    { header: "CR #", key: "crNumber", width: 15 },
-    { header: "Date", key: "date", width: 18 },
-    { header: "Contributor", key: "contributor", width: 30 },
-    { header: "User ID", key: "userId", width: 15 },
-    { header: "Contributed To", key: "contributedTo", width: 30 },
-    { header: "Collection Type", key: "collectionType", width: 20 },
-    { header: "Description", key: "description", width: 45 },
-    { header: "Participants", key: "participants", width: 15 },
-    { header: "Amount", key: "amount", width: 15 },
-    { header: "Total", key: "total", width: 15 }
-  ];
-
-  data.forEach(record => {
-    const parsedDate = record["Date"]
-      ? new Date(record["Date"])
+    const parsedDate = item.date
+      ? new Date(item.date)
       : null;
 
-    inRecordsSheet.addRow({
-      crNumber: record["CR #"],
-      date:
-        parsedDate &&
-        !Number.isNaN(parsedDate.getTime())
-          ? parsedDate
-          : "",
-      contributor: record["Contributor"],
-      userId: record["User ID"],
-      contributedTo: record["Contributed To"],
-      collectionType: record["Collection Type"],
-      description: record["Description"],
-      participants: record["Participants"],
-      amount: record["Amount"],
-      total: record["Total"]
-    });
-  });
+    const validDate =
+      parsedDate &&
+      !Number.isNaN(parsedDate.getTime());
 
-  inRecordsSheet.getRow(1).font = { bold: true };
+    const dateKey = validDate
+      ? `${parsedDate.getFullYear()}-${String(
+          parsedDate.getMonth() + 1
+        ).padStart(2, "0")}-${String(
+          parsedDate.getDate()
+        ).padStart(2, "0")}`
+      : "unknown-date";
 
-  inRecordsSheet.getRow(1).alignment = {
-    vertical: "middle",
-    horizontal: "center"
-  };
+    // Normalize the CR number.
+    const crNumber =
+      String(item.crNumber || "").trim();
 
-  inRecordsSheet.getRow(1).height = 22;
+    const crNumberKey =
+      crNumber || "no-cr-number";
 
-  inRecordsSheet.getColumn("date").numFmt = "mmm d, yyyy";
-  inRecordsSheet.getColumn("amount").numFmt = "₱#,##0.00";
-  inRecordsSheet.getColumn("total").numFmt = "₱#,##0.00";
+    // IMPORTANT: Include CR number in the grouping key.
+    const key =
+      `${userKey}-${dateKey}-${crNumberKey}`;
 
-  inRecordsSheet.autoFilter = {
-    from: "A1",
-    to: `J${data.length + 1}`
-  };
+    const fullName =
+      typeof user.fullName === "string" &&
+      user.fullName.trim()
+        ? user.fullName.trim()
+        : "NO NAME";
 
-  // =========================================================
-  // LISTS SHEET — HIDDEN DROPDOWN SOURCE
-  // =========================================================
+    const userId =
+      user.userId || "";
 
-  const listsSheet = workbook.addWorksheet("Lists");
-
-  listsSheet.state = "hidden";
-
-  listsSheet.columns = [
-    { header: "CR + Contribution", key: "label", width: 55 },
-    { header: "CR #", key: "crNumber", width: 20 },
-    {
-      header: "Contributed To",
-      key: "contributedTo",
-      width: 35
-    }
-  ];
-
-  contributionOptions.forEach(option => {
-    listsSheet.addRow({
-      label: option.label,
-      crNumber: option.crNumber,
-      contributedTo: option.contributedTo
-    });
-  });
-
-  listsSheet.getRow(1).font = { bold: true };
-
-  workbook.definedNames.add(
-    `Lists!$A$2:$A$${contributionOptions.length + 1}`,
-    "CR_Contribution_List"
-  );
-
-  // =========================================================
-  // LEDGER SHEET — SIX COLUMNS ONLY
-  // =========================================================
-
-  const ledgerSheet = workbook.addWorksheet("Ledger");
-
-  ledgerSheet.columns = [
-    { header: "Date", key: "date", width: 18 },
-    {
-      header: "CR # | Contributed To",
-      key: "selection",
-      width: 45
-    },
-    { header: "IN", key: "in", width: 15 },
-    { header: "Particular", key: "particular", width: 35 },
-    { header: "OUT", key: "out", width: 15 },
-    { header: "Balance", key: "balance", width: 18 }
-  ];
-
-  const ledgerHeader = ledgerSheet.getRow(1);
-
-  ledgerHeader.font = { bold: true };
-
-  ledgerHeader.alignment = {
-    vertical: "middle",
-    horizontal: "center",
-    wrapText: true
-  };
-
-  ledgerHeader.height = 30;
-
-  // =========================================================
-  // LEDGER FORMULAS AND DROPDOWN
-  // =========================================================
-
-  const lastRecordRow = data.length + 1;
-  const lastOptionRow = contributionOptions.length + 1;
-  const ledgerRows = 100;
-
-  for (
-    let rowNumber = 2;
-    rowNumber <= ledgerRows + 1;
-    rowNumber++
-  ) {
-    const selectionCell = `B${rowNumber}`;
-    const dateCell = `A${rowNumber}`;
-    const inCell = `C${rowNumber}`;
-    const outCell = `E${rowNumber}`;
-    const balanceCell = `F${rowNumber}`;
-
-    // -------------------------------------------------------
-    // ONE DROPDOWN: CR NUMBER + CONTRIBUTED TO
-    // -------------------------------------------------------
-
-    ledgerSheet.getCell(selectionCell).dataValidation = {
-      type: "list",
-      allowBlank: true,
-      formulae: ["CR_Contribution_List"],
-      showErrorMessage: true,
-      errorTitle: "Invalid Selection",
-      error:
-        "Please select a CR number and contribution from the dropdown."
-    };
-
-    // -------------------------------------------------------
-    // DATE
-    // Retrieve the first matching record using both CR
-    // number and Contributed To from the hidden Lists sheet.
-    // -------------------------------------------------------
-
-    ledgerSheet.getCell(dateCell).value = {
-      formula:
-        `IF(${selectionCell}="", "", IFERROR(` +
-        `INDEX('In Records'!$B$2:$B$${lastRecordRow},` +
-        `MATCH(1,INDEX(` +
-        `('In Records'!$A$2:$A$${lastRecordRow}=` +
-        `INDEX(Lists!$B$2:$B$${lastOptionRow},` +
-        `MATCH(${selectionCell},Lists!$A$2:$A$${lastOptionRow},0)))*` +
-        `('In Records'!$E$2:$E$${lastRecordRow}=` +
-        `INDEX(Lists!$C$2:$C$${lastOptionRow},` +
-        `MATCH(${selectionCell},Lists!$A$2:$A$${lastOptionRow},0))),` +
-        `0),0)), ""))`
-    };
-
-    // -------------------------------------------------------
-    // IN
-    // Sum amounts matching the selected CR and contribution.
-    // Return zero when no dropdown selection is made.
-    // -------------------------------------------------------
-
-    ledgerSheet.getCell(inCell).value = {
-      formula:
-        `IF(${selectionCell}="",0,SUMIFS(` +
-        `'In Records'!$I$2:$I$${lastRecordRow},` +
-        `'In Records'!$A$2:$A$${lastRecordRow},` +
-        `INDEX(Lists!$B$2:$B$${lastOptionRow},` +
-        `MATCH(${selectionCell},Lists!$A$2:$A$${lastOptionRow},0)),` +
-        `'In Records'!$E$2:$E$${lastRecordRow},` +
-        `INDEX(Lists!$C$2:$C$${lastOptionRow},` +
-        `MATCH(${selectionCell},Lists!$A$2:$A$${lastOptionRow},0))))`
-    };
-
-    // -------------------------------------------------------
-    // BALANCE
-    // Zero when no dropdown selection is made.
-    // Otherwise, carry forward the previous balance and
-    // add IN minus OUT.
-    // -------------------------------------------------------
-
-    if (rowNumber === 2) {
-      ledgerSheet.getCell(balanceCell).value = {
-        formula:
-          `IF(${selectionCell}="",0,` +
-          `N(${inCell})-N(${outCell}))`
-      };
-    } else {
-      ledgerSheet.getCell(balanceCell).value = {
-        formula:
-          `IF(${selectionCell}="",0,` +
-          `N(F${rowNumber - 1})+N(${inCell})-N(${outCell}))`
+    if (!groups[key]) {
+      groups[key] = {
+        key,
+        date: validDate ? item.date : null,
+        userId,
+        fullName,
+        crNumber,
+        contributions: [],
+        totalAmount: 0
       };
     }
-  }
 
-  // =========================================================
-  // FORMATTING
-  // =========================================================
+    const amount = Number(item.amount) || 0;
 
-  ledgerSheet.getColumn("date").numFmt = "mmm d, yyyy";
+    groups[key].contributions.push({
+      _id: item._id,
+      crNumber,
+      numberOfParticipants:
+        Number(item.numberOfParticipants) || 1,
+      contributedTo: item.contributedTo || "",
+      collectionType: item.collectionType || "",
+      description: item.description || "",
+      amount
+    });
 
-  ["in", "out", "balance"].forEach(key => {
-    ledgerSheet.getColumn(key).numFmt = "₱#,##0.00";
-
-    ledgerSheet.getColumn(key).alignment = {
-      horizontal: "right"
-    };
+    groups[key].totalAmount += amount;
   });
 
-  ledgerSheet.views = [
-    {
-      state: "frozen",
-      ySplit: 1
-    }
-  ];
+  return Object.values(groups).sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
 
-  ledgerSheet.autoFilter = {
-    from: "A1",
-    to: `F${ledgerRows + 1}`
-  };
-
-  // =========================================================
-  // EXPORT XLSX FILE
-  // =========================================================
-
-  const dateParts = new Intl.DateTimeFormat("en", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).formatToParts(new Date());
-
-  const dateValues = Object.fromEntries(
-    dateParts.map(part => [part.type, part.value])
-  );
-
-  const today =
-    `${dateValues.year}-${dateValues.month}-${dateValues.day}`;
-
-  const filename = `LedgerReport_${today}.xlsx`;
-
-  const buffer = await workbook.xlsx.writeBuffer();
-
-  const blob = new Blob([buffer], {
-    type:
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return (
+      new Date(b.date).getTime() -
+      new Date(a.date).getTime()
+    );
   });
-
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = filename;
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  window.URL.revokeObjectURL(url);
-
-  notyf.success("Excel file exported successfully.");
-
-
-  } catch (error) {
-  console.error("Excel export error:", error);
-
-
-  notyf.error("Unable to create Excel file.");
-
-
-  }
-  };
+});
 
 
 
-  
-
-
-
-// =========================
-// Watch Grouped Data
+ // =========================
+// Watch Table Data and Loading
 // =========================
 
 watch(
-  groupedContributions,
-  async () => {
+  [groupedContributions, isLoading],
+  async ([, loading]) => {
+    if (loading) {
+      return;
+    }
 
     await initializeDataTable();
-
+  },
+  {
+    flush: "post"
   }
 );
+
+
+
+
+
 
 
 // =========================

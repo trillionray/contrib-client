@@ -52,6 +52,18 @@
                     </div>
 
                     <div class="col-md-4">
+                        <div class="info-box">
+                            <small class="text-muted">
+                                Designation
+                            </small>
+
+                            <div class="fw-bold">
+                                {{ selectedUser.designation || "No Designation" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
 
                         <div class="info-box">
 
@@ -686,6 +698,10 @@
                                         Name
                                     </th>
 
+                                    <th>
+                                        Designation
+                                    </th>
+
                                     <!-- Dynamic Contribution Columns -->
                                     <th
                                         v-for="contributedTo in contributedToColumns"
@@ -742,6 +758,23 @@
                                             {{ user.fullName || "Unknown User" }}
                                         </div>
 
+                                    </td>
+
+                                    <!-- Designation -->
+                                    <td>
+                                        <span
+                                            v-if="user.designation"
+                                            class="fw-semibold"
+                                        >
+                                            {{ user.designation }}
+                                        </span>
+
+                                        <span
+                                            v-else
+                                            class="text-muted"
+                                        >
+                                            No Designation
+                                        </span>
                                     </td>
 
 
@@ -2021,9 +2054,10 @@ const exportToExcel = () => {
 
     const headers = [
         "User ID",
-        "Name"
+        "Name",
+        "Designation"
     ];
-
+    
     contributedToColumns.value.forEach(
         contributedTo => {
 
@@ -2041,10 +2075,11 @@ const exportToExcel = () => {
     users.value.forEach(
         user => {
 
-            const row = [
-                user.userId || "No User ID",
-                user.fullName || "Unknown User"
-            ];
+           const row = [
+               user.userId || "No User ID",
+               user.fullName || "Unknown User",
+               user.designation || "No Designation"
+           ];
 
             contributedToColumns.value.forEach(
                 contributedTo => {
@@ -2079,9 +2114,10 @@ const exportToExcel = () => {
 
     const grandTotalRow = [
         "",
+        "",
         "GRAND TOTAL"
     ];
-
+    
     contributedToColumns.value.forEach(
         contributedTo => {
 
@@ -2185,7 +2221,7 @@ const exportToExcel = () => {
 
 
     const totalColumns =
-        2 +
+        3 +
         contributedToColumns.value.length +
         1;
 
@@ -2471,6 +2507,9 @@ const getUsers = async () => {
                 }
             );
 
+
+
+        console.log(response.data);
 
         users.value =
             response.data || [];

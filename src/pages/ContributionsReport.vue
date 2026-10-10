@@ -635,6 +635,14 @@
 
                       </template>
 
+                      <template v-else-if="column.key === 'designation'">
+                        <span>
+                          {{ item.user?.designation || "—" }}
+                        </span>
+                      </template>
+
+
+
                       <template
                         v-else-if="
                           column.key === 'numberOfParticipants'
@@ -947,7 +955,12 @@
                               {{ contribution.user.userId }}
 
                             </small>
+                          </template>
 
+                          <template v-else-if="column.key === 'designation'">
+                            <span>
+                              {{ contribution.user?.designation || "—" }}
+                            </span>
                           </template>
 
 
@@ -1495,55 +1508,51 @@ const reportGenerated = ref(false);
 // =========================
 
 const availableColumns = [
-
   {
     key: "crNumber",
     label: "CR Number",
     default: true
   },
-
   {
     key: "date",
     label: "Date",
     default: true
   },
-
   {
     key: "contributor",
     label: "Contributor",
     default: true
   },
-
+  {
+    key: "designation",
+    label: "Designation",
+    default: true
+  },
   {
     key: "numberOfParticipants",
     label: "Participants",
     default: true
   },
-
   {
     key: "contributedTo",
     label: "Contributed To",
     default: true
   },
-
   {
     key: "collectionType",
     label: "Collection Type",
     default: false
   },
-
   {
     key: "description",
     label: "Particulars",
     default: false
   },
-
   {
     key: "amount",
     label: "Amount",
     default: true
   }
-
 ];
 
 
@@ -2352,6 +2361,9 @@ const createReport =
       }
 
 
+      console.log(response.data)
+
+
       report.value =
         response.data;
 
@@ -3075,6 +3087,10 @@ const getCellOrder = (
 
   }
 
+  if (columnKey === "designation") {
+    return item.user?.designation || "";
+  }
+
 
   if (
     columnKey ===
@@ -3405,6 +3421,11 @@ const exportToExcel = () => {
         ""
       );
 
+    }
+
+
+    if (columnKey === "designation") {
+      return item.user?.designation || "";
     }
 
 

@@ -46,7 +46,7 @@
             @click="exportToExcel"
           >
             <i class="bi bi-file-earmark-excel me-1"></i>
-            LR Template
+            Ledger
           </button>
 
 
@@ -927,6 +927,406 @@ const formatAmount = (
   );
 
 };
+
+
+const exportToExcel = async () => {
+  try {
+    const workbook = new ExcelJS.Workbook();
+
+    workbook.creator = "Contributions System";
+    workbook.created = new Date();
+
+    // =========================================================
+    // HELPER: CONVERT VALUE TO EXCEL DATE
+    // =========================================================
+    const toExcelDate = (value) => {
+      if (!value) return null;
+
+      if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return new Date(
+          value.getFullYear(),
+          value.getMonth(),
+          value.getDate()
+        );
+      }
+
+      const text = String(value).trim();
+      if (!text) return null;
+
+      const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+
+      if (isoMatch) {
+        const year = Number(isoMatch[1]);
+        const month = Number(isoMatch[2]);
+        const day = Number(isoMatch[3]);
+
+        const date = new Date(year, month - 1, day);
+
+        if (
+          date.getFullYear() === year &&
+          date.getMonth() === month - 1 &&
+          date.getDate() === day
+        ) {
+          return date;
+        }
+      }
+
+      const parsed = new Date(text);
+
+      if (!Number.isNaN(parsed.getTime())) {
+        return new Date(
+          parsed.getFullYear(),
+          parsed.getMonth(),
+          parsed.getDate()
+        );
+      }
+
+      console.warn("Could not parse date:", value);
+      return null;
+    };
+
+    const DATE_FORMAT = 'mm"-"dd"-"yy';
+
+    // =========================================================
+    // PREPARE CONTRIBUTION DATA
+    // =========================================================
+    const data = [];
+
+    groupedContributions.value.forEach((item) => {
+      item.contributions.forEach((contribution) => {
+        const crNumber = String(contribution.crNumber ?? "").trim();
+        const contributedTo = String(
+          contribution.contributedTo ?? ""
+        ).trim();
+        const description = String(
+          contribution.description ?? ""
+        ).trim();
+
+        const selectionKey = [
+          crNumber,
+          contributedTo,
+          description,
+        ].join(" | ");
+
+        data.push({
+          crNumber,
+          date: toExcelDate(item.date),
+          contributor: item.fullName || "NO NAME",
+          userId: item.userId ?? "",
+          contributedTo,
+          collectionType: contribution.collectionType ?? "",
+          description,
+          participants: Number(
+            contribution.numberOfParticipants ?? 1
+          ),
+          amount: Number(contribution.amount ?? 0),
+          selectionKey,
+        });
+      });
+    });
+
+    if (data.length === 0) {
+      if (typeof notyf !== "undefined") {
+        notyf.error("No contribution records to export.");
+      } else {
+        alert("No contribution records to export.");
+      }
+
+      return;
+    }
+
+    // =========================================================
+    // CREATE IN RECORDS SHEET
+    // =========================================================
+    const inRecordsSheet = workbook.addWorksheet("In Records");
+
+    inRecordsSheet.columns = [
+      { header: "CR #", key: "crNumber", width: 18 },
+      { header: "Date", key: "date", width: 15 },
+      { header: "Contributor", key: "contributor", width: 25 },
+      { header: "User ID", key: "userId", width: 18 },
+      { header: "Contributed To", key: "contributedTo", width: 25 },
+      { header: "Collection Type", key: "collectionType", width: 18 },
+      { header: "Particular", key: "description", width: 30 },
+      { header: "Participants", key: "participants", width: 15 },
+      { header: "Amount", key: "amount", width: 18 },
+      { header: "Selection Key", key: "selectionKey", width: 65 },
+    ];
+
+    data.forEach((record) => {
+      const row = inRecordsSheet.addRow({
+        crNumber: record.crNumber,
+        date: record.date,
+        contributor: record.contributor,
+        userId: record.userId,
+        contributedTo: record.contributedTo,
+        collectionType: record.collectionType,
+        description: record.description,
+        participants: record.participants,
+        amount: record.amount,
+        selectionKey: record.selectionKey,
+      });
+
+      row.getCell(2).numFmt = DATE_FORMAT;
+      row.getCell(9).numFmt = '"₱"#,##0.00';
+    });
+
+    inRecordsSheet.getColumn(2).numFmt = DATE_FORMAT;
+
+    inRecordsSheet.getRow(1).font = { bold: true };
+
+    inRecordsSheet.getRow(1).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+
+    inRecordsSheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    inRecordsSheet.autoFilter = {
+      from: "A1",
+      to: "J1",
+    };
+
+    // =========================================================
+    // CREATE LEDGER SHEET
+    // =========================================================
+    const ledgerSheet = workbook.addWorksheet("Ledger");
+
+    ledgerSheet.columns = [
+      { header: "Date", key: "date", width: 15 },
+      {
+        header: "CR # | Contributed To | Particulars",
+        key: "selection",
+        width: 55,
+      },
+      { header: "IN", key: "in", width: 18 },
+      { header: "Particular", key: "particular", width: 35 },
+      { header: "OUT", key: "out", width: 18 },
+      { header: "Balance", key: "balance", width: 18 },
+    ];
+
+    // =========================================================
+    // DROPDOWN OPTIONS
+    // SORT LARGEST CR NUMBER FIRST
+    // =========================================================
+    const uniqueSelections = [
+      ...new Set(
+        data
+          .filter(
+            (record) =>
+              record.selectionKey.trim() !== "" &&
+              record.selectionKey !== " | "
+          )
+          .map((record) => record.selectionKey)
+      ),
+    ].sort((a, b) => {
+      const crA = a.split(" | ")[0].trim();
+      const crB = b.split(" | ")[0].trim();
+
+      // Extract numeric portions so CR 100 sorts before CR 99.
+      const numA = crA.match(/\d+/g);
+      const numB = crB.match(/\d+/g);
+
+      const valueA = numA ? Number(numA.join("")) : 0;
+      const valueB = numB ? Number(numB.join("")) : 0;
+
+      if (valueA !== valueB) {
+        return valueB - valueA;
+      }
+
+      // If numeric values are equal, sort by the full CR number.
+      return crB.localeCompare(crA);
+    });
+
+    // Store dropdown options in hidden column H.
+    ledgerSheet.getCell("H1").value = "Dropdown Options";
+
+    uniqueSelections.forEach((selection, index) => {
+      ledgerSheet.getCell(`H${index + 2}`).value = selection;
+    });
+
+    ledgerSheet.getColumn("H").hidden = true;
+
+    const lastOptionRow = Math.max(uniqueSelections.length + 1, 2);
+    const firstLedgerRow = 2;
+    const lastLedgerRow = 101;
+    const lastRecordRow = data.length + 1;
+
+    // =========================================================
+    // LEDGER FORMULAS AND FORMATTING
+    // =========================================================
+    for (
+      let row = firstLedgerRow;
+      row <= lastLedgerRow;
+      row++
+    ) {
+      // Dropdown selection.
+      ledgerSheet.getCell(`B${row}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [`$H$2:$H$${lastOptionRow}`],
+        showErrorMessage: true,
+        errorStyle: "stop",
+        errorTitle: "Invalid Selection",
+        error: "Please select a record from the dropdown list.",
+      };
+
+      // Date: display as MM-DD-YY.
+      ledgerSheet.getCell(`A${row}`).value = {
+        formula:
+          `IF(B${row}="","",` +
+          `IFERROR(TEXT(INDEX('In Records'!$B$2:$B$${lastRecordRow},` +
+          `MATCH(B${row},'In Records'!$J$2:$J$${lastRecordRow},0)),` +
+          `"mm-dd-yy"),""))`,
+      };
+
+      ledgerSheet.getCell(`A${row}`).numFmt = "@";
+
+      // IN: sum all matching contribution records.
+      // Show the amount only for the first occurrence of a selection.
+      ledgerSheet.getCell(`C${row}`).value = {
+        formula:
+          `IF(OR(B${row}="",COUNTIF($B$2:B${row},B${row})>1),0,` +
+          `SUMIF('In Records'!$J$2:$J$${lastRecordRow},` +
+          `B${row},'In Records'!$I$2:$I$${lastRecordRow}))`,
+      };
+
+      ledgerSheet.getCell(`C${row}`).numFmt = '"₱"#,##0.00';
+
+      // OUT: user-editable amount.
+      ledgerSheet.getCell(`E${row}`).value = 0;
+      ledgerSheet.getCell(`E${row}`).numFmt = '"₱"#,##0.00';
+
+      // Running balance: previous balance + IN - OUT.
+      if (row === firstLedgerRow) {
+        ledgerSheet.getCell(`F${row}`).value = {
+          formula:
+            `IF(AND(B${row}="",C${row}=0,E${row}=0),"",` +
+            `C${row}-E${row})`,
+        };
+      } else {
+        ledgerSheet.getCell(`F${row}`).value = {
+          formula:
+            `IF(AND(B${row}="",C${row}=0,E${row}=0),"",` +
+            `F${row - 1}+C${row}-E${row})`,
+        };
+      }
+
+      ledgerSheet.getCell(`F${row}`).numFmt = '"₱"#,##0.00';
+
+      // Alignment.
+      ledgerSheet.getCell(`A${row}`).alignment = {
+        vertical: "middle",
+      };
+
+      ledgerSheet.getCell(`B${row}`).alignment = {
+        vertical: "middle",
+        wrapText: true,
+      };
+
+      ledgerSheet.getCell(`D${row}`).alignment = {
+        vertical: "middle",
+        wrapText: true,
+      };
+
+      ledgerSheet.getCell(`C${row}`).alignment = {
+        vertical: "middle",
+        horizontal: "right",
+      };
+
+      ledgerSheet.getCell(`E${row}`).alignment = {
+        vertical: "middle",
+        horizontal: "right",
+      };
+
+      ledgerSheet.getCell(`F${row}`).alignment = {
+        vertical: "middle",
+        horizontal: "right",
+      };
+    }
+
+    // =========================================================
+    // LEDGER HEADER FORMATTING
+    // =========================================================
+    ledgerSheet.getRow(1).font = {
+      bold: true,
+      color: { argb: "FFFFFFFF" },
+    };
+
+    ledgerSheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF343A40" },
+    };
+
+    ledgerSheet.getRow(1).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+      wrapText: true,
+    };
+
+    ledgerSheet.getRow(1).height = 32;
+
+    ledgerSheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    ledgerSheet.autoFilter = {
+      from: "A1",
+      to: "F1",
+    };
+
+    for (
+      let row = firstLedgerRow;
+      row <= lastLedgerRow;
+      row++
+    ) {
+      ledgerSheet.getRow(row).height = 24;
+    }
+
+    // =========================================================
+    // EXPORT EXCEL FILE
+    // =========================================================
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date();
+
+    const dateStamp =
+      `${today.getFullYear()}-` +
+      `${String(today.getMonth() + 1).padStart(2, "0")}-` +
+      `${String(today.getDate()).padStart(2, "0")}`;
+
+    link.href = url;
+    link.download = `LedgerReport_${dateStamp}.xlsx`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+
+    if (typeof notyf !== "undefined") {
+      notyf.success("Excel report exported successfully.");
+    }
+  } catch (error) {
+    console.error("Excel export error:", error);
+
+    if (typeof notyf !== "undefined") {
+      notyf.error("Failed to export Excel report.");
+    } else {
+      alert("Failed to export Excel report. Check the console for details.");
+    }
+  }
+};
+
+
+
+
+
 
 
 // =========================

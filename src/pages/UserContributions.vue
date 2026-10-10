@@ -722,6 +722,27 @@
                             <!-- Totals -->
                             <tfoot>
                                 <!-- Grand Total -->
+
+                                
+                                <tr>
+                                  <th colspan="3" class="text-end">
+                                    Total Participants
+                                  </th>
+
+                                  <th
+                                    v-for="category in contributedToColumns"
+                                    :key="'participants-' + category"
+                                    class="text-center"
+                                  >
+                                    {{ getParticipantsByContributedTo(category) }}
+                                  </th>
+
+                                  <th></th>
+                                  <th></th>
+                                </tr>
+
+                                  
+                                   
                                 <tr>
                                     <th
                                         colspan="3"
@@ -1026,6 +1047,25 @@ const totalContributionCount = computed(() => {
         0
     );
 });
+
+
+const getParticipantsByContributedTo = (contributedTo) => {
+  return users.value.reduce((total, user) => {
+    const categoryParticipants = (user.contributions || [])
+      .filter(
+        contribution =>
+          normalizeContributedTo(contribution.contributedTo) ===
+          normalizeContributedTo(contributedTo)
+      )
+      .reduce(
+        (sum, contribution) =>
+          sum + (Number(contribution.numberOfParticipants) || 0),
+        0
+      );
+
+    return total + categoryParticipants;
+  }, 0);
+};
 
 
 // --------------------------------------------------
@@ -1581,10 +1621,12 @@ const initializeDataTable = async () => {
 };
 
 
-// --------------------------------------------------
-// Export Excel
-// Includes only the categories selected in checklist.
-// --------------------------------------------------
+
+ // --------------------------------------------------
+ // Export Excel
+ // Includes only the categories selected in checklist.
+ // Includes participant totals per contributedTo category.
+ // --------------------------------------------------
 
 const exportToExcel = () => {
     if (!users.value.length) {
@@ -1593,12 +1635,18 @@ const exportToExcel = () => {
 
     const rows = [];
 
-    // Report title
+    // --------------------------------------------------
+    // Report Title
+    // --------------------------------------------------
+
     rows.push([
         "CONTRIBUTION MARKS"
     ]);
 
-    // Date range
+    // --------------------------------------------------
+    // Date Range
+    // --------------------------------------------------
+
     rows.push([
         "Date Range",
         `${appliedStartDate.value || "Beginning"} → ${
@@ -1626,7 +1674,6 @@ const exportToExcel = () => {
 
     rows.push(headers);
 
-
     // --------------------------------------------------
     // User Rows
     // --------------------------------------------------
@@ -1638,6 +1685,7 @@ const exportToExcel = () => {
             user.designation || "No Designation"
         ];
 
+        // Mark selected contribution categories
         contributedToColumns.value.forEach(contributedTo => {
             row.push(
                 hasContribution(user, contributedTo)
@@ -1654,6 +1702,44 @@ const exportToExcel = () => {
         rows.push(row);
     });
 
+    // --------------------------------------------------
+    // Total Participants Per ContributedTo
+    // Uses numberOfParticipants from individual records.
+    // --------------------------------------------------
+
+    const totalParticipantsRow = [
+        "",
+        "",
+        "TOTAL PARTICIPANTS"
+    ];
+
+    contributedToColumns.value.forEach(contributedTo => {
+        const participants = users.value.reduce((total, user) => {
+            const categoryParticipants = (user.contributions || [])
+                .filter(contribution =>
+                    normalizeContributedTo(contribution.contributedTo) ===
+                    normalizeContributedTo(contributedTo)
+                )
+                .reduce((sum, contribution) => {
+                    return sum +
+                        (Number(contribution.numberOfParticipants) || 0);
+                }, 0);
+
+            return total + categoryParticipants;
+        }, 0);
+
+        totalParticipantsRow.push(participants);
+    });
+
+    // No participant grand total in the Total column,
+    // because participants are counted per category.
+    totalParticipantsRow.push("");
+
+    rows.push([]);
+
+    const participantsRowIndex = rows.length;
+
+    rows.push(totalParticipantsRow);
 
     // --------------------------------------------------
     // Grand Total
@@ -1679,7 +1765,6 @@ const exportToExcel = () => {
 
     rows.push(grandTotalRow);
 
-
     // --------------------------------------------------
     // Online Total
     // --------------------------------------------------
@@ -1701,7 +1786,6 @@ const exportToExcel = () => {
     const onlineTotalRowIndex = rows.length;
 
     rows.push(onlineTotalRow);
-
 
     // --------------------------------------------------
     // Cash Total
@@ -1725,7 +1809,6 @@ const exportToExcel = () => {
 
     rows.push(cashTotalRow);
 
-
     // --------------------------------------------------
     // Worksheet
     // --------------------------------------------------
@@ -1737,9 +1820,8 @@ const exportToExcel = () => {
         contributedToColumns.value.length +
         1;
 
-
     // --------------------------------------------------
-    // Column Width
+    // Column Widths
     // --------------------------------------------------
 
     const columnWidths = [];
@@ -1771,11 +1853,9 @@ const exportToExcel = () => {
 
     worksheet["!cols"] = columnWidths;
 
-
     // --------------------------------------------------
     // Center Checkmarks
-    // Fixed columns are 0, 1, and 2.
-    // Dynamic category columns begin at index 3.
+    // Category columns begin at index 3.
     // --------------------------------------------------
 
     for (
@@ -1807,9 +1887,8 @@ const exportToExcel = () => {
         }
     }
 
-
     // --------------------------------------------------
-    // Format All Total Rows
+    // Format Currency Total Rows
     // --------------------------------------------------
 
     const totalRowIndexes = [
@@ -1838,6 +1917,30 @@ const exportToExcel = () => {
         }
     });
 
+    // --------------------------------------------------
+    // Format Participant Counts As Whole Numbers
+    // --------------------------------------------------
+
+    for (
+        let colIndex = 3;
+        colIndex < totalColumns - 1;
+        colIndex++
+    ) {
+        const cellAddress = XLSX.utils.encode_cell({
+            r: participantsRowIndex,
+            c: colIndex
+        });
+
+        if (worksheet[cellAddress]) {
+            worksheet[cellAddress].z = "0";
+            worksheet[cellAddress].s = {
+                alignment: {
+                    horizontal: "center",
+                    vertical: "center"
+                }
+            };
+        }
+    }
 
     // --------------------------------------------------
     // Workbook
@@ -1851,7 +1954,6 @@ const exportToExcel = () => {
         "Contribution Marks"
     );
 
-
     // --------------------------------------------------
     // Generate Filename
     // --------------------------------------------------
@@ -1864,7 +1966,6 @@ const exportToExcel = () => {
 
     const filename =
         `Contribution-Marks-${start}-to-${end}.xlsx`;
-
 
     // --------------------------------------------------
     // Create Excel File
@@ -1885,7 +1986,6 @@ const exportToExcel = () => {
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         }
     );
-
 
     // --------------------------------------------------
     // Force Download With Filename
